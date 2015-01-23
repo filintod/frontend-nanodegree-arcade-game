@@ -11,6 +11,10 @@ var Enemy = function(x, y, speed) {
     this.x = x;
 };
 
+function randomNegativeXOffset(){
+    return -10 * X_OFFSET * Math.random();
+}
+
 // Update the enemy's position, required method for game
 // Parameter: dt, a time delta between ticks
 Enemy.prototype.update = function(dt) {
@@ -19,9 +23,8 @@ Enemy.prototype.update = function(dt) {
     // all computers.
     this.x += dt * X_OFFSET * this.speed;
 
-    if (this.x > X_OFFSET * 5){
-        this.x = -X_OFFSET;
-    }
+    if (this.x > X_OFFSET * 5)
+        this.x = randomNegativeXOffset();
 
 };
 
@@ -59,10 +62,10 @@ Player.prototype.handleInput = function(key){
 function createEnemies(count) {
     var enemies = [];
     for(var i=0; i<count ; i++){
-        var speed = 10 * Math.random();
+        var speed = 3 * Math.random() + 0.5;
         // bugs can only be on three sections (paved area) as seen from the video
         var y_location = Math.floor(3 * Math.random()) + 1;
-        var x_location = -10 * X_OFFSET * Math.random();
+        var x_location = randomNegativeXOffset();
         enemies.push(new Enemy(x_location, y_location, speed));
     }
     return enemies;
