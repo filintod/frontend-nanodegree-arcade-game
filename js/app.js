@@ -1,18 +1,17 @@
 // Enemies our player must avoid
 var Enemy = function(x, y, speed) {
-    // Variables applied to each of our instances go here,
-    // we've provided one for you to get started
 
-    // The image/sprite for our enemies, this uses
-    // a helper we've provided to easily load images
     this.sprite = 'images/enemy-bug.png';
     this.speed = speed;
     this.y = y * Y_OFFSET;
     this.x = x;
 };
 
+/*
+
+ */
 function randomNegativeXOffset(){
-    return -10 * X_OFFSET * Math.random();
+    return -20 * X_OFFSET * Math.random();
 }
 
 // Update the enemy's position, required method for game
@@ -45,6 +44,8 @@ var Charm = function(sprite){
 var Player = function(character_image) {
     this.sprite = 'images/' + character_image;
     this.myCharms = [];
+    this.x = X_OFFSET * 3;
+    this.y = Y_OFFSET * 5;
 };
 
 Player.prototype.update = function(dt){
@@ -59,10 +60,26 @@ Player.prototype.handleInput = function(key){
 
 } ;
 
+Player.prototype.moveUp = function() {
+    this.y -= Y_OFFSET;
+}
+
+Player.prototype.moveDown = function() {
+    this.y += Y_OFFSET;
+}
+
+Player.prototype.moveRight = function() {
+    this.x += X_OFFSET;
+}
+
+Player.prototype.moveLeft = function() {
+    this.x -= X_OFFSET;
+}
+
 function createEnemies(count) {
     var enemies = [];
     for(var i=0; i<count ; i++){
-        var speed = 3 * Math.random() + 0.5;
+        var speed = 2 * Math.random() + 0.5;
         // bugs can only be on three sections (paved area) as seen from the video
         var y_location = Math.floor(3 * Math.random()) + 1;
         var x_location = randomNegativeXOffset();
@@ -85,11 +102,11 @@ var charms = [];
 // Player.handleInput() method. You don't need to modify this.
 document.addEventListener('keyup', function(e) {
     var allowedKeys = {
-        37: 'left',
-        38: 'up',
-        39: 'right',
-        40: 'down'
+        37: 'moveLeft',
+        38: 'moveUp',
+        39: 'moveRight',
+        40: 'moveDown'
     };
-
-    player.handleInput(allowedKeys[e.keyCode]);
+    if (allowedKeys[e.keyCode])
+        player[allowedKeys[e.keyCode]](); //.handleInput(allowedKeys[e.keyCode]);
 });
