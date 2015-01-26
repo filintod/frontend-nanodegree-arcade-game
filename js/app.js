@@ -100,19 +100,19 @@ Player.prototype.handleInput = function(key){
 };
 
 Player.prototype.moveUp = function() {
-    this.y -= Y_OFFSET;
+    this.y -= Y_OFFSET / 2;
 };
 
 Player.prototype.moveDown = function() {
-    this.y += Y_OFFSET;
+    this.y += Y_OFFSET / 2;
 };
 
 Player.prototype.moveRight = function() {
-    this.x += X_OFFSET;
+    this.x += X_OFFSET / 2;
 };
 
 Player.prototype.moveLeft = function() {
-    this.x -= X_OFFSET;
+    this.x -= X_OFFSET / 2;
 };
 
 var straightFunction = function(speed) {
@@ -153,16 +153,14 @@ var allEnemies = createEnemies(10);
 var player = new Player('char-boy.png');
 var charms = [];
 
-
-// This listens for key presses and sends the keys to your
-// Player.handleInput() method. You don't need to modify this.
-document.addEventListener('keyup', function(e) {
-    var allowedKeys = {
+var allowedKeys = {
         37: 'moveLeft',
         38: 'moveUp',
         39: 'moveRight',
         40: 'moveDown'
     };
+
+document.addEventListener('keydown', function(e) {
     if (allowedKeys[e.keyCode])
         player[allowedKeys[e.keyCode]](); //.handleInput(allowedKeys[e.keyCode]);
 });
