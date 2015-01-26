@@ -15,7 +15,9 @@
  */
 
 var X_OFFSET = 101;
-var Y_OFFSET = 83;
+var Y_OFFSET = 81;
+var CANVAS_WIDTH = 505;
+var CANVAS_HEIGHT = 606;
 
 var Engine = (function(global) {
     /* Predefine the variables we'll be using within this scope,
@@ -28,8 +30,8 @@ var Engine = (function(global) {
         ctx = canvas.getContext('2d'),
         lastTime;
 
-    canvas.width = 505;
-    canvas.height = 606;
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
     doc.body.appendChild(canvas);
 
     /* This function serves as the kickoff point for the game loop itself
@@ -83,7 +85,7 @@ var Engine = (function(global) {
      */
     function update(dt) {
         updateEntities(dt);
-        // checkCollisions();
+        checkCollisions();
     }
 
     /* This is called by the update function  and loops through all of the
@@ -94,10 +96,19 @@ var Engine = (function(global) {
      * render methods.
      */
     function updateEntities(dt) {
-        allEnemies.forEach(function(enemy) {
+        allEnemies.forEach(function (enemy) {
             enemy.update(dt);
         });
         player.update();
+    }
+
+    function checkCollisions(){
+        allEnemies.forEach(function(enemy) {
+            if (enemy.isVisible() && enemy.collidesWith(player)) {
+                player.reset_location();
+                return 0;
+            }
+        });
     }
 
     /* This function initially draws the "game level", it will then call
