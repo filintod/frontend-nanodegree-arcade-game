@@ -33,10 +33,10 @@ function randomNegativeXOffset(){
 Enemy.prototype.collidesWith = function(other){
     if (((this.x + this.offset[2]) < (other.x + other.offset[0])) ||
         ((this.x + this.offset[0]) > (other.x + other.offset[2])) ||
-        ((this.y +  this.offset[3]) < (other.y + other.offset[1])) ||
+        ((this.y + this.offset[3]) < (other.y + other.offset[1])) ||
         ((this.y + this.offset[1]) > (other.y + other.offset[3]))) {
 
-        return false
+        return false;
     }
     return true;
 };
@@ -58,7 +58,7 @@ Enemy.prototype.update = function(dt) {
 
 Enemy.prototype.isVisible = function() {
     return ((this.x + BUG_WIDTH) > 0 &&  this.x < CANVAS_WIDTH)
-}
+};
 
 // Draw the enemy on the screen, required method for game
 Enemy.prototype.render = function() {
@@ -69,7 +69,6 @@ Enemy.prototype.render = function() {
 var Charm = function(sprite){
     this.sprite = sprite;
 };
-
 
 // Now write your own player class
 // This class requires an update(), render() and
@@ -88,7 +87,6 @@ Player.prototype.reset_location = function() {
 };
 
 Player.prototype.update = function(dt){
-
 };
 
 Player.prototype.render = function(){
@@ -96,7 +94,6 @@ Player.prototype.render = function(){
 };
 
 Player.prototype.handleInput = function(key){
-
 };
 
 Player.prototype.moveUp = function() {
@@ -144,7 +141,6 @@ function createEnemies(count) {
     }
     return enemies;
 }
-
 
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
