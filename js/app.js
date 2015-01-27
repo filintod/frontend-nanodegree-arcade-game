@@ -1,3 +1,5 @@
+// TODO: make it more object oriented
+
 // 50 px are empty on the sprites
 var SPRITE_Y_OFFSET_EMPTY = 50;
 var BUG_OFFSET = [1, 79, 99, 143];
@@ -5,23 +7,76 @@ var BOY_OFFSET = [18, 64, 84, 138];
 var BUG_HEIGHT = BUG_OFFSET[3] - BUG_OFFSET[1];
 var BUG_WIDTH = BUG_OFFSET[2] - BUG_OFFSET[0];
 
+/*
+DRY utility function for inheritance steps
+ */
+function inherits(thisClass, baseClass){
+    thisClass.prototype = Object.create(baseClass.prototype);
+    thisClass.prototype.constructor = thisClass;
+}
+
+var Sprite = function(x, y, sprite, spriteOffset) {
+    this.sprite = sprite;
+    this.x = x;
+    this.y = y;
+    this.xOrigin = x;
+    this.yOrigin = y;
+    this.offset = spriteOffset;
+    this.width = spriteOffset[2] - spriteOffset[0];
+    this.height = spriteOffset[3] - spriteOffset[1];
+};
+
+// TODO: create a better collision detection using alpha pixels collision
+Sprite.prototype.collidesWith = function(other){
+    return (!(((this.x + this.offset[2]) < (other.x + other.offset[0])) ||
+              ((this.x + this.offset[0]) > (other.x + other.offset[2])) ||
+              ((this.y + this.offset[3]) < (other.y + other.offset[1])) ||
+              ((this.y + this.offset[1]) > (other.y + other.offset[3]))))
+};
+
+/*
+Function to find if the sprite is visible on the canvas. We are only checking X dimension
+ */
+Sprite.prototype.isVisible = function() {
+    return ((this.x + this.offset[0] + this.width) > 0 &&  this.x < CANVAS_WIDTH)
+};
+
+Sprite.prototype.render = function() {
+    if (this.isVisible())
+        fgCtx.drawImage(Resources.get(this.sprite), this.x, this.y);
+};
+
+Sprite.prototype.reset_location = function() {
+    this.x = this.xOrigin;
+    this.y = this.yOrigin;
+};
+
+
+function getAlphaPixels(image){
+    var img_data = ctx.getImageData(0, 0, c.width, c.height);
+        for (var i = 0; i < img_data.data.length; i += 4) {
+            gray = img_data.data[i] * 0.289 + img_data.data[i+1] * 0.5870 + img_data.data[i+2] * 0.1140;
+            img_data.data[i] = gray;
+            img_data.data[i + 1] = gray;
+            img_data.data[i + 2] = gray;
+        }
+        fgCtx.putImageData(img_data, 0, 0);
+}
+
 /* Enemies our player must avoid
 
      For this project there is only one enemy type (bugY_OFFSETW+ are hardcoding the y-offset and height of the bug ind
      of cropping the original image.  If there were more than one type we would have to dynamically find this values.
  */
-var Enemy = function(x, y, speed, movement) {
-
-
-    this.sprite = 'images/enemy-bug.png';
+var Enemy = function(y, speed, movement) {
     this.move = movement;
     this.speed = speed;
     this.dt = 0;
-    this.y = y * Y_OFFSET + BUG_HEIGHT;
-    this.originalY = this.y;
-    this.x = x;
-    this.offset = BUG_OFFSET;
+    Sprite.call(this, 0, y * Y_OFFSET + BUG_HEIGHT, 'images/enemy-bug.png', BUG_OFFSET);
+    this.reset_location();
 };
+
+inherits(Enemy, Sprite);
 
 /*
 
@@ -30,15 +85,10 @@ function randomNegativeXOffset(){
     return -10 * X_OFFSET * Math.random();
 }
 
-Enemy.prototype.collidesWith = function(other){
-    if (((this.x + this.offset[2]) < (other.x + other.offset[0])) ||
-        ((this.x + this.offset[0]) > (other.x + other.offset[2])) ||
-        ((this.y + this.offset[3]) < (other.y + other.offset[1])) ||
-        ((this.y + this.offset[1]) > (other.y + other.offset[3]))) {
-
-        return false;
-    }
-    return true;
+Enemy.prototype.reset_location = function(){
+    Sprite.prototype.reset_location.call(this);
+    this.x = randomNegativeXOffset();
+    this.dt = 0;
 };
 
 // Update the enemy's position, required method for game
@@ -50,48 +100,30 @@ Enemy.prototype.update = function(dt) {
     this.move(this.speed * dt);
 
     if (this.x > X_OFFSET * 5) {
-        this.x = randomNegativeXOffset();
-        this.y = this.originalY;
-        this.dt = 0;
+        this.reset_location();
     }
 };
 
-Enemy.prototype.isVisible = function() {
-    return ((this.x + BUG_WIDTH) > 0 &&  this.x < CANVAS_WIDTH)
-};
-
-// Draw the enemy on the screen, required method for game
-Enemy.prototype.render = function() {
-    if (this.isVisible())
-        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-};
 
 var Charm = function(sprite){
-    this.sprite = sprite;
+    Sprite.call(this, sprite);
 };
+inherits(Charm, Sprite);
 
 // Now write your own player class
 // This class requires an update(), render() and
 // a handleInput() method.
 
 var Player = function(character_image) {
-    this.sprite = 'images/' + character_image;
+    Sprite.call(this, X_OFFSET * 2, Y_OFFSET * 5, 'images/' + character_image, BOY_OFFSET);
     this.myCharms = [];
-    this.reset_location();
-    this.offset = BOY_OFFSET;
 };
+inherits(Player, Sprite);
 
-Player.prototype.reset_location = function() {
-    this.x = X_OFFSET * 2;
-    this.y = Y_OFFSET * 5;
-};
 
 Player.prototype.update = function(dt){
 };
 
-Player.prototype.render = function(){
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-};
 
 Player.prototype.handleInput = function(key){
 };
@@ -134,10 +166,8 @@ function createEnemies(count) {
     for(var i=0; i<count ; i++){
         var speed = 2 * Math.random() + 0.5;
         // bugs can only be on three sections (paved area) as seen from the video
-        var x_location = randomNegativeXOffset();
         var moveAndYLocation = getEnemyMovement();
-
-        enemies.push(new Enemy(x_location, moveAndYLocation[1], speed, moveAndYLocation[0]));
+        enemies.push(new Enemy(moveAndYLocation[1], speed, moveAndYLocation[0]));
     }
     return enemies;
 }

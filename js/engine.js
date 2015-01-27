@@ -18,6 +18,8 @@ var X_OFFSET = 101;
 var Y_OFFSET = 81;
 var CANVAS_WIDTH = 505;
 var CANVAS_HEIGHT = 606;
+var CANVAS_ROWS = 6;
+var CANVAS_COLUMNS = 5;
 
 var Engine = (function(global) {
     /* Predefine the variables we'll be using within this scope,
@@ -26,12 +28,14 @@ var Engine = (function(global) {
      */
     var doc = global.document,
         win = global.window,
-        canvas = doc.getElementById('canvas'),
-        ctx = canvas.getContext('2d'),
+        bgCanvas = doc.getElementById('bgCanvas'),
+        bgCtx = bgCanvas.getContext('2d'),
+        fgCanvas = doc.getElementById('fgCanvas'),
+        fgCtx = fgCanvas.getContext('2d'),
         lastTime;
 
-    canvas.width = CANVAS_WIDTH;
-    canvas.height = CANVAS_HEIGHT;
+    bgCanvas.width = fgCanvas.width = CANVAS_WIDTH;
+    bgCanvas.height = fgCanvas.height = CANVAS_HEIGHT;
 
     /* This function serves as the kickoff point for the game loop itself
      * and handles properly calling the update and render methods.
@@ -50,7 +54,8 @@ var Engine = (function(global) {
          * our update function since it may be used for smooth animation.
          */
         update(dt);
-        render();
+        fgCtx.clearRect ( 0 , 0 , CANVAS_WIDTH, CANVAS_HEIGHT );
+        renderEntities();
 
         /* Set our lastTime variable which is used to determine the time delta
          * for the next time this function is called.
@@ -70,6 +75,7 @@ var Engine = (function(global) {
     function init() {
         reset();
         lastTime = Date.now();
+        renderBG();
         main();
     }
 
@@ -110,13 +116,7 @@ var Engine = (function(global) {
         });
     }
 
-    /* This function initially draws the "game level", it will then call
-     * the renderEntities function. Remember, this function is called every
-     * game tick (or loop of the game engine) because that's how games work -
-     * they are flipbooks creating the illusion of animation but in reality
-     * they are just drawing the entire screen over and over.
-     */
-    function render() {
+    function renderBG(){
         /* This array holds the relative URL to the image used
          * for that particular row of the game level.
          */
@@ -128,8 +128,8 @@ var Engine = (function(global) {
                 'images/grass-block.png',   // Row 1 of 2 of grass
                 'images/grass-block.png'    // Row 2 of 2 of grass
             ],
-            numRows = 6,
-            numCols = 5,
+            numRows = CANVAS_ROWS,
+            numCols = CANVAS_COLUMNS,
             row, col;
 
         /* Loop through the number of rows and columns we've defined above
@@ -145,15 +145,12 @@ var Engine = (function(global) {
                  * so that we get the benefits of caching these images, since
                  * we're using them over and over.
                  */
-                ctx.drawImage(Resources.get(rowImages[row]), col * X_OFFSET, row * Y_OFFSET);
+                bgCtx.drawImage(Resources.get(rowImages[row]), col * X_OFFSET, row * Y_OFFSET);
             }
         }
-
-
-        renderEntities();
     }
 
-    /* This function is called by the render function and is called on each game
+    /* This function is called by the main function and is called on each game
      * tick. It's purpose is to then call the render functions you have defined
      * on your enemy and player entities within app.js
      */
@@ -198,5 +195,6 @@ var Engine = (function(global) {
      * object when run in a browser) so that developer's can use it more easily
      * from within their app.js files.
      */
-    global.ctx = ctx;
+    global.bgCtx = bgCtx;
+    global.fgCtx = fgCtx;
 })(this);

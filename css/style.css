@@ -14,3 +14,9 @@ body {
     padding-top: 0px;
     padding-bottom: 0px;
 }
+
+.game {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+}
