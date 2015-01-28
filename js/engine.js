@@ -54,8 +54,7 @@ var Engine = (function(global) {
          * our update function since it may be used for smooth animation.
          */
         update(dt);
-        fgCtx.clearRect ( 0 , 0 , CANVAS_WIDTH, CANVAS_HEIGHT );
-        renderEntities();
+        renderEntities(fgCtx);
 
         /* Set our lastTime variable which is used to determine the time delta
          * for the next time this function is called.
@@ -154,19 +153,21 @@ var Engine = (function(global) {
      * tick. It's purpose is to then call the render functions you have defined
      * on your enemy and player entities within app.js
      */
-    function renderEntities() {
+    function renderEntities(ctx) {
         /* Loop through all of the objects within the allEnemies array and call
          * the render function you have defined.
          */
+        ctx.clearRect ( 0 , 0 , CANVAS_WIDTH, CANVAS_HEIGHT);
+
         allEnemies.forEach(function(enemy) {
-            enemy.render();
+            enemy.render(ctx);
         });
 
-        player.render();
+        player.render(ctx);
 
         /* Loop through the charms if any */
         charms.forEach(function(charm) {
-            charm.render();
+            charm.render(ctx);
         });
     }
 
@@ -187,6 +188,7 @@ var Engine = (function(global) {
         'images/water-block.png',
         'images/grass-block.png',
         'images/enemy-bug.png',
+        'images/bug_small.png',
         'images/char-boy.png'
     ]);
     Resources.onReady(init);

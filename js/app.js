@@ -1,11 +1,9 @@
 // TODO: make it more object oriented
 
 // 50 px are empty on the sprites
-var SPRITE_Y_OFFSET_EMPTY = 50;
-var BUG_OFFSET = [1, 79, 99, 143];
+var BUG_OFFSET = [1, 1, 100, 75];
 var BOY_OFFSET = [18, 64, 84, 138];
 var BUG_HEIGHT = BUG_OFFSET[3] - BUG_OFFSET[1];
-var BUG_WIDTH = BUG_OFFSET[2] - BUG_OFFSET[0];
 
 /*
 DRY utility function for inheritance steps
@@ -28,10 +26,14 @@ var Sprite = function(x, y, sprite, spriteOffset) {
 
 // TODO: create a better collision detection using alpha pixels collision
 Sprite.prototype.collidesWith = function(other){
-    return (!(((this.x + this.offset[2]) < (other.x + other.offset[0])) ||
-              ((this.x + this.offset[0]) > (other.x + other.offset[2])) ||
-              ((this.y + this.offset[3]) < (other.y + other.offset[1])) ||
-              ((this.y + this.offset[1]) > (other.y + other.offset[3]))))
+    if (!((this.x + this.width < other.x)) ||   // too far left
+              (this.x > other.x + other.width) ||   // too far right
+              (this.y + this.height < other.y) ||   // too far down
+              (this.y > other.y + other.height)){
+        return this.alphaChannelCollidesWith(other);
+    } else {
+        return false;
+    }
 };
 
 /*
@@ -41,9 +43,10 @@ Sprite.prototype.isVisible = function() {
     return ((this.x + this.offset[0] + this.width) > 0 &&  this.x < CANVAS_WIDTH)
 };
 
-Sprite.prototype.render = function() {
-    if (this.isVisible())
-        fgCtx.drawImage(Resources.get(this.sprite), this.x, this.y);
+Sprite.prototype.render = function(ctx) {
+    if (this.isVisible()) {
+        ctx.drawImage(Resources.get(this.sprite).image, this.offset[0], this.offset[1], this.width, this.height, this.x, this.y, this.width, this.height);
+    }
 };
 
 Sprite.prototype.reset_location = function() {
@@ -51,31 +54,48 @@ Sprite.prototype.reset_location = function() {
     this.y = this.yOrigin;
 };
 
+/*
+Returns a 2-dimensional array of the Alpha values for the pixels define in the rectangle given.
+The rectangle values are given in the current space coordinate so we need to translate to the original sprite values
+ */
+Sprite.prototype.getSpriteAlphaValuesForRectangle = function(rectangle){
 
-function getAlphaPixels(image){
-    var img_data = ctx.getImageData(0, 0, c.width, c.height);
-        for (var i = 0; i < img_data.data.length; i += 4) {
-            gray = img_data.data[i] * 0.289 + img_data.data[i+1] * 0.5870 + img_data.data[i+2] * 0.1140;
-            img_data.data[i] = gray;
-            img_data.data[i + 1] = gray;
-            img_data.data[i + 2] = gray;
+};
+
+Sprite.prototype.getRectangleIntersectionWith = function(other) {
+    var myArea = [], otherArea = [];
+    var x0 = Math.max(this.x, other.x);
+    var x1 = Math.min(this.x + this.width, other.x + other.width);
+
+    var y0 = Math.max(this.y, other.y);
+    var y1 = Math.min(this.y + this.height, other.y + other.height);
+    return [x0, y0, x1, y1];
+};
+
+Sprite.prototype.alphaChannelCollidesWith = function(other){
+    var rectangle = this.getRectangleIntersectionWith(other);
+    var thisAlpha = this.getSpriteAlphaValuesForRectangle(rectangle);
+    var otherAlpha = other.getSpriteAlphaValuesForRectangle(rectangle);
+    var i,j;
+    for(i=0; i<thisAlpha.length; i++){
+        for(j=0; j<thisAlpha[0].length; j++){
+            if (thisAlpha[i][j] & otherAlpha[i][j]){
+                return true;
+            }
         }
-        fgCtx.putImageData(img_data, 0, 0);
-}
+    }
+    return false;
+};
 
 /* Enemies our player must avoid
-
-     For this project there is only one enemy type (bugY_OFFSETW+ are hardcoding the y-offset and height of the bug ind
-     of cropping the original image.  If there were more than one type we would have to dynamically find this values.
  */
 var Enemy = function(y, speed, movement) {
     this.move = movement;
     this.speed = speed;
     this.dt = 0;
-    Sprite.call(this, 0, y * Y_OFFSET + BUG_HEIGHT, 'images/enemy-bug.png', BUG_OFFSET);
+    Sprite.call(this, 0, y * Y_OFFSET + 2 * Y_OFFSET - BUG_HEIGHT/2, 'images/bug_small.png', BUG_OFFSET);
     this.reset_location();
 };
-
 inherits(Enemy, Sprite);
 
 /*
@@ -87,7 +107,7 @@ function randomNegativeXOffset(){
 
 Enemy.prototype.reset_location = function(){
     Sprite.prototype.reset_location.call(this);
-    this.x = randomNegativeXOffset();
+    this.x = Math.floor(randomNegativeXOffset());
     this.dt = 0;
 };
 
@@ -117,6 +137,8 @@ inherits(Charm, Sprite);
 var Player = function(character_image) {
     Sprite.call(this, X_OFFSET * 2, Y_OFFSET * 5, 'images/' + character_image, BOY_OFFSET);
     this.myCharms = [];
+    this.yStep = Math.floor(Y_OFFSET / 8);
+    this.xStep = Math.floor(X_OFFSET / 8);
 };
 inherits(Player, Sprite);
 
@@ -125,33 +147,38 @@ Player.prototype.update = function(dt){
 };
 
 
-Player.prototype.handleInput = function(key){
-};
-
 Player.prototype.moveUp = function() {
-    this.y -= Y_OFFSET / 2;
+    this.y -= this.yStep;
+    if (this.y < 0)
+        this.y += this.yStep;
 };
 
 Player.prototype.moveDown = function() {
-    this.y += Y_OFFSET / 2;
+    this.y += this.yStep;
+    if (this.y + this.height > CANVAS_HEIGHT)
+        this.y -= this.yStep;
 };
 
 Player.prototype.moveRight = function() {
-    this.x += X_OFFSET / 2;
+    this.x += this.xStep;
+    if (this.x + this.width > CANVAS_WIDTH)
+        this.x -= this.xStep;
 };
 
 Player.prototype.moveLeft = function() {
-    this.x -= X_OFFSET / 2;
+    this.x -= this.xStep;
+    if (this.x < 0)
+        this.x += this.xStep;
 };
 
 var straightFunction = function(speed) {
-    this.x += X_OFFSET * speed;
+    this.x += Math.floor(X_OFFSET * speed);
 };
 
 var sineFunction = function(speed){
     this.dt += speed;
-    this.x += X_OFFSET * speed;
-    this.y = Y_OFFSET * (Math.sin(this.dt) + 2) - BUG_HEIGHT / 2;
+    this.x += Math.floor(X_OFFSET * speed);
+    this.y = Math.floor(Y_OFFSET * (Math.sin(this.dt) + 3) - BUG_HEIGHT / 2);
 };
 
 function getEnemyMovement(){
@@ -179,14 +206,13 @@ var allEnemies = createEnemies(10);
 var player = new Player('char-boy.png');
 var charms = [];
 
-var allowedKeys = {
-        37: 'moveLeft',
-        38: 'moveUp',
-        39: 'moveRight',
-        40: 'moveDown'
+var movePlayerKey = {
+        37: player.moveLeft,
+        38: player.moveUp,
+        39: player.moveRight,
+        40: player.moveDown
     };
 
 document.addEventListener('keydown', function(e) {
-    if (allowedKeys[e.keyCode])
-        player[allowedKeys[e.keyCode]](); //.handleInput(allowedKeys[e.keyCode]);
+    (movePlayerKey[e.keyCode]) ? movePlayerKey[e.keyCode](): 0;
 });
