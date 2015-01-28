@@ -1,10 +1,3 @@
-// TODO: make it more object oriented
-
-// 50 px are empty on the sprites
-var BUG_OFFSET = [1, 1, 100, 75];
-var BOY_OFFSET = [18, 64, 84, 138];
-var BUG_HEIGHT = BUG_OFFSET[3] - BUG_OFFSET[1];
-
 /*
 DRY utility function for inheritance steps
  */
@@ -13,39 +6,52 @@ function inherits(thisClass, baseClass){
     thisClass.prototype.constructor = thisClass;
 }
 
-var Sprite = function(x, y, sprite, spriteOffset) {
-    this.sprite = sprite;
+var Sprite = function(x, y, sprite) {
+    var img = Resources.get(sprite);
+    this.image = img.image;
+    this.alpha = img.alpha;
     this.x = x;
     this.y = y;
     this.xOrigin = x;
     this.yOrigin = y;
-    this.offset = spriteOffset;
-    this.width = spriteOffset[2] - spriteOffset[0];
-    this.height = spriteOffset[3] - spriteOffset[1];
 };
 
-// TODO: create a better collision detection using alpha pixels collision
+/**
+ * Finds weather two sprites collides. First check that the rectangles do collides and then check weather the alpha
+ * values of the images collide for the rectangles that do collide
+ *
+ * @param other
+ * @returns {*}
+ */
 Sprite.prototype.collidesWith = function(other){
-    if (!((this.x + this.width < other.x)) ||   // too far left
-              (this.x > other.x + other.width) ||   // too far right
-              (this.y + this.height < other.y) ||   // too far down
-              (this.y > other.y + other.height)){
-        return this.alphaChannelCollidesWith(other);
-    } else {
-        return false;
+    var rectangle = this.getRectangleIntersectionWith(other);
+    if (rectangle) {
+        // check the alpha pixels for the rectangle match the ones for the other sprite
+        var x,y;
+        for(y=rectangle[1]; y<rectangle[3]; y++){
+            for(x=rectangle[0]; x<rectangle[2]; x++){
+                if (this.alpha[(y - this.y)*this.image.width + (x - this.x)] && other.alpha[(y - other.y)*other.image.width + (x - other.x)])
+                    return true
+            }
+        }
     }
+    return false;
 };
+
+Sprite.prototype.update = function(dt){
+};
+
 
 /*
 Function to find if the sprite is visible on the canvas. We are only checking X dimension
  */
 Sprite.prototype.isVisible = function() {
-    return ((this.x + this.offset[0] + this.width) > 0 &&  this.x < CANVAS_WIDTH)
+    return ((this.x + this.image.width) > 0 &&  this.x < CANVAS_WIDTH)
 };
 
 Sprite.prototype.render = function(ctx) {
     if (this.isVisible()) {
-        ctx.drawImage(Resources.get(this.sprite).image, this.offset[0], this.offset[1], this.width, this.height, this.x, this.y, this.width, this.height);
+        ctx.drawImage(this.image, this.x, this.y, this.image.width, this.image.height);
     }
 };
 
@@ -54,37 +60,20 @@ Sprite.prototype.reset_location = function() {
     this.y = this.yOrigin;
 };
 
-/*
-Returns a 2-dimensional array of the Alpha values for the pixels define in the rectangle given.
-The rectangle values are given in the current space coordinate so we need to translate to the original sprite values
- */
-Sprite.prototype.getSpriteAlphaValuesForRectangle = function(rectangle){
-
-};
-
 Sprite.prototype.getRectangleIntersectionWith = function(other) {
-    var myArea = [], otherArea = [];
     var x0 = Math.max(this.x, other.x);
-    var x1 = Math.min(this.x + this.width, other.x + other.width);
+    var x1 = Math.min(this.x + this.image.width, other.x + other.image.width);
+
+    if (x1 < x0)
+        return false;
 
     var y0 = Math.max(this.y, other.y);
-    var y1 = Math.min(this.y + this.height, other.y + other.height);
-    return [x0, y0, x1, y1];
-};
+    var y1 = Math.min(this.y + this.image.height, other.y + other.image.height);
 
-Sprite.prototype.alphaChannelCollidesWith = function(other){
-    var rectangle = this.getRectangleIntersectionWith(other);
-    var thisAlpha = this.getSpriteAlphaValuesForRectangle(rectangle);
-    var otherAlpha = other.getSpriteAlphaValuesForRectangle(rectangle);
-    var i,j;
-    for(i=0; i<thisAlpha.length; i++){
-        for(j=0; j<thisAlpha[0].length; j++){
-            if (thisAlpha[i][j] & otherAlpha[i][j]){
-                return true;
-            }
-        }
-    }
-    return false;
+    if (y1 < y0)
+        return false;
+
+    return [x0, y0, x1, y1];
 };
 
 /* Enemies our player must avoid
@@ -93,7 +82,7 @@ var Enemy = function(y, speed, movement) {
     this.move = movement;
     this.speed = speed;
     this.dt = 0;
-    Sprite.call(this, 0, y * Y_OFFSET + 2 * Y_OFFSET - BUG_HEIGHT/2, 'images/bug_small.png', BUG_OFFSET);
+    Sprite.call(this, 0, (y + 2) * Y_OFFSET, 'images/bug_small.png');
     this.reset_location();
 };
 inherits(Enemy, Sprite);
@@ -135,38 +124,42 @@ inherits(Charm, Sprite);
 // a handleInput() method.
 
 var Player = function(character_image) {
-    Sprite.call(this, X_OFFSET * 2, Y_OFFSET * 5, 'images/' + character_image, BOY_OFFSET);
+    Sprite.call(this, X_OFFSET * 2, Y_OFFSET * 5, 'images/' + character_image);
     this.myCharms = [];
     this.yStep = Math.floor(Y_OFFSET / 8);
     this.xStep = Math.floor(X_OFFSET / 8);
 };
 inherits(Player, Sprite);
 
-
-Player.prototype.update = function(dt){
+Player.prototype.move = function(keys){
+    var speed = (keys[17]) ? 2 : 1;
+    for(keycode in movePlayerKey){
+        if (keys[keycode]){
+            movePlayerKey[keycode].call(this, speed);
+        }
+    }
 };
 
-
-Player.prototype.moveUp = function() {
-    this.y -= this.yStep;
+Player.prototype.moveUp = function(speed) {
+    this.y -= this.yStep * speed;
     if (this.y < 0)
         this.y += this.yStep;
 };
 
-Player.prototype.moveDown = function() {
-    this.y += this.yStep;
+Player.prototype.moveDown = function(speed) {
+    this.y += this.yStep * speed;
     if (this.y + this.height > CANVAS_HEIGHT)
         this.y -= this.yStep;
 };
 
-Player.prototype.moveRight = function() {
-    this.x += this.xStep;
-    if (this.x + this.width > CANVAS_WIDTH)
+Player.prototype.moveRight = function(speed) {
+    this.x += this.xStep * speed;
+    if (this.x + this.image.width > CANVAS_WIDTH)
         this.x -= this.xStep;
 };
 
-Player.prototype.moveLeft = function() {
-    this.x -= this.xStep;
+Player.prototype.moveLeft = function(speed) {
+    this.x -= this.xStep * speed;
     if (this.x < 0)
         this.x += this.xStep;
 };
@@ -178,7 +171,7 @@ var straightFunction = function(speed) {
 var sineFunction = function(speed){
     this.dt += speed;
     this.x += Math.floor(X_OFFSET * speed);
-    this.y = Math.floor(Y_OFFSET * (Math.sin(this.dt) + 3) - BUG_HEIGHT / 2);
+    this.y = Math.floor(Y_OFFSET * (Math.sin(this.dt) + 3) - this.image.height / 2);
 };
 
 function getEnemyMovement(){
@@ -199,20 +192,37 @@ function createEnemies(count) {
     return enemies;
 }
 
-// Now instantiate your objects.
-// Place all enemy objects in an array called allEnemies
-// Place the player object in a variable called player
-var allEnemies = createEnemies(10);
-var player = new Player('char-boy.png');
-var charms = [];
+var allEnemies, player, charms;
+var movePlayerKey, keys=[];
+var NUMBER_OF_ENEMIES = 10;
 
-var movePlayerKey = {
+/**
+ * Creates the entities after the resources have been loaded. Wait one second before re-checking if not ready.
+ */
+function createEntities(){
+    // Now instantiate your objects.
+    // Place all enemy objects in an array called allEnemies
+    // Place the player object in a variable called player
+    allEnemies = createEnemies(NUMBER_OF_ENEMIES);
+    player = new Player('char-boy.png');
+    charms = [];
+
+    movePlayerKey = {
         37: player.moveLeft,
         38: player.moveUp,
         39: player.moveRight,
         40: player.moveDown
     };
 
-document.addEventListener('keydown', function(e) {
-    (movePlayerKey[e.keyCode]) ? movePlayerKey[e.keyCode](): 0;
-});
+    document.addEventListener('keydown', function(e) {
+        keys[e.keyCode] = true;
+        (keys[37] || keys[38] || keys[39] || keys[40]) ? player.move(keys) : 0;
+    });
+
+    document.addEventListener('keyup', function(e) {
+        delete keys[e.keyCode];
+    });
+
+}
+
+Resources.onReady(createEntities);

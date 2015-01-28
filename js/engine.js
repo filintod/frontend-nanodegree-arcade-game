@@ -123,7 +123,7 @@ var Engine = (function(global) {
                 'images/water-block.png',   // Top row is water
                 'images/stone-block.png',   // Row 1 of 3 of stone
                 'images/stone-block.png',   // Row 2 of 3 of stone
-                'images/stone-block.png',   // Row 3 of 3 of stone
+                'images/stone-block.png',   // Row 3 of 4 of stone
                 'images/grass-block.png',   // Row 1 of 2 of grass
                 'images/grass-block.png'    // Row 2 of 2 of grass
             ],
@@ -144,7 +144,7 @@ var Engine = (function(global) {
                  * so that we get the benefits of caching these images, since
                  * we're using them over and over.
                  */
-                bgCtx.drawImage(Resources.get(rowImages[row]), col * X_OFFSET, row * Y_OFFSET);
+                bgCtx.drawImage(Resources.get(rowImages[row]).image, col * X_OFFSET, row * Y_OFFSET);
             }
         }
     }
@@ -197,6 +197,5 @@ var Engine = (function(global) {
      * object when run in a browser) so that developer's can use it more easily
      * from within their app.js files.
      */
-    global.bgCtx = bgCtx;
     global.fgCtx = fgCtx;
 })(this);

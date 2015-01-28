@@ -1,3 +1,20 @@
+function getAlphaPixels(image){
+    var c = document.createElement('canvas');
+    c.width = image.width;
+    c.height = image.height;
+    var ctx = c.getContext('2d');
+    ctx.drawImage(image, 0, 0);
+
+    var img_data = ctx.getImageData(0, 0, c.width, c.height).data;
+    var alphaArray = new Uint8Array(img_data.length >> 2);
+    var j=0;
+    for(var i=0; i<img_data.length; i+=4)
+        alphaArray[j++] = ((img_data[i] || img_data[i + 1] || img_data[i + 2]) && img_data[i + 3]) | 0;
+
+    return alphaArray;
+}
+
+
 /* Resources.js
  * This is simple an image loading utility. It eases the process of loading
  * image files so that they can be used within your game. It also includes
@@ -51,7 +68,7 @@
                  * so that we can simply return this image if the developer
                  * attempts to load this file in the future.
                  */
-                resourceCache[url] = img;
+                resourceCache[url] = {image: img, alpha: getAlphaPixels(img)};
 
                 /* Once the image is actually loaded and properly cached,
                  * call all of the onReady() callbacks we have defined.
