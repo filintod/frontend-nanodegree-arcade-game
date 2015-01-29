@@ -16,10 +16,29 @@
 
 var X_OFFSET = 101;
 var Y_OFFSET = 81;
-var CANVAS_WIDTH = 505;
-var CANVAS_HEIGHT = 606;
-var CANVAS_ROWS = 6;
-var CANVAS_COLUMNS = 5;
+var CANVAS_ROWS = 8;
+var CANVAS_COLUMNS = 8;
+var CANVAS_WIDTH = X_OFFSET * CANVAS_COLUMNS;
+var CANVAS_HEIGHT = X_OFFSET * CANVAS_ROWS;
+var NUMBER_OF_WATER_ROWS = 1;
+var NUMBER_OF_GRASS_ROWS = 2;
+var NUMBER_OF_BLOCK_ROWS = CANVAS_ROWS - NUMBER_OF_WATER_ROWS - NUMBER_OF_GRASS_ROWS;
+
+function createMap() {
+    var rowImages = [];
+
+    var appendToRows = function(n, v){
+        for(var i=0; i<n ; i++)
+            rowImages.push(v);
+    };
+
+    appendToRows(NUMBER_OF_WATER_ROWS, 'images/water-block.png');
+    appendToRows(NUMBER_OF_BLOCK_ROWS, 'images/stone-block.png');
+    appendToRows(NUMBER_OF_GRASS_ROWS, 'images/grass-block.png');
+
+    return rowImages;
+}
+
 
 var Engine = (function(global) {
     /* Predefine the variables we'll be using within this scope,
@@ -119,24 +138,14 @@ var Engine = (function(global) {
         /* This array holds the relative URL to the image used
          * for that particular row of the game level.
          */
-        var rowImages = [
-                'images/water-block.png',   // Top row is water
-                'images/stone-block.png',   // Row 1 of 3 of stone
-                'images/stone-block.png',   // Row 2 of 3 of stone
-                'images/stone-block.png',   // Row 3 of 4 of stone
-                'images/grass-block.png',   // Row 1 of 2 of grass
-                'images/grass-block.png'    // Row 2 of 2 of grass
-            ],
-            numRows = CANVAS_ROWS,
-            numCols = CANVAS_COLUMNS,
-            row, col;
+        var rowImages = createMap();
 
         /* Loop through the number of rows and columns we've defined above
          * and, using the rowImages array, draw the correct image for that
          * portion of the "grid"
          */
-        for (row = 0; row < numRows; row++) {
-            for (col = 0; col < numCols; col++) {
+        for (var row = 0; row < CANVAS_ROWS; row++) {
+            for (var col = 0; col < CANVAS_COLUMNS; col++) {
                 /* The drawImage function of the canvas' context element
                  * requires 3 parameters: the image to draw, the x coordinate
                  * to start drawing and the y coordinate to start drawing.

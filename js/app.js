@@ -185,7 +185,7 @@ Enemy.prototype.update = function(dt) {
     // all computers.
     this.move(this.speed * dt);
 
-    if (this.x > X_OFFSET * 5) {
+    if (this.x > CANVAS_WIDTH + this.image.width) {
         this.reset_location();
     }
 };
@@ -210,7 +210,7 @@ var PLAYER_STEP_DIVISION = 4;
  * @constructor
  */
 var Player = function(sprite) {
-    Sprite.call(this, X_OFFSET * 2, Y_OFFSET * 5, sprite);
+    Sprite.call(this, (CANVAS_WIDTH - X_OFFSET) / 2, CANVAS_HEIGHT - 4 * Y_OFFSET, sprite);
 
     // array of charms collected by this player
     this.myCharms = [];
@@ -265,7 +265,7 @@ Player.prototype.isAnyOfTheseKeysActionable = function(keys){
 Player.prototype.isEnteringObstacle = function(){
     return (this.x < 0 || this.y < 0 ||
             this.x + this.image.width > CANVAS_WIDTH ||
-            this.y + this.image.height > CANVAS_HEIGHT
+            this.y + this.image.height > CANVAS_HEIGHT - Y_OFFSET
     )
 };
 
@@ -286,7 +286,7 @@ Player.prototype.moveUp = function(speed) {
 Player.prototype.moveDown = function(speed) {
     this.y += this.yStep * speed;
     if (this.isEnteringObstacle())
-        this.y = Y_OFFSET * (CANVAS_ROWS - 1);
+        this.y = Math.floor(Y_OFFSET * (CANVAS_ROWS - 1 - 2 / PLAYER_STEP_DIVISION));
 };
 
 /**
@@ -297,7 +297,7 @@ Player.prototype.moveRight = function(speed) {
     this.x += this.xStep * speed;
     if (this.isEnteringObstacle()) {
         // moves player back to simulate hitting a wall
-        this.x = Math.floor(X_OFFSET * (CANVAS_COLUMNS - 1 - ( 1 / PLAYER_STEP_DIVISION)));
+        this.x = Math.floor(X_OFFSET * (CANVAS_COLUMNS - 1 -  1 / PLAYER_STEP_DIVISION));
     }
 };
 
@@ -333,7 +333,7 @@ Player.prototype.changeSprite = function(sprite){
 };
 
 /**
- * Function to represent horizontal movement of a sprite
+ * Function to represent horizontal left to right movement of a sprite
  * @param speed
  */
 var straightFunction = function(speed) {
