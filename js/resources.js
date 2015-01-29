@@ -1,3 +1,10 @@
+/**
+ * Creates an array of alpha values for the image provided. The value added is either 0 or something else depending
+ * weather the pixel has no color and the alpha channel value is > 0
+ *
+ * @param image
+ * @returns {Uint8Array}
+ */
 function getAlphaPixels(image){
     var c = document.createElement('canvas');
     c.width = image.width;
@@ -20,6 +27,8 @@ function getAlphaPixels(image){
  * image files so that they can be used within your game. It also includes
  * a simple "caching" layer so it will reuse cached images if you attempt
  * to load the same image multiple times.
+ *
+ * Update: change resourceCache object to not only have the image but also to carry the alpha channel array
  */
 (function() {
     var resourceCache = {};

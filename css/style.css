@@ -8,12 +8,49 @@ body {
     margin-bottom: 0px;
 }
 
-.character {
-    margin-top: -60px;
-    margin-bottom: 0px;
-    padding-top: 0px;
-    padding-bottom: 0px;
+.characters {
+    width: 80px;
+    height: 100px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background-image: url("../images/char_sprite_map.png");
+    background-repeat: no-repeat;
+    cursor: pointer;
 }
+
+#char_boy {
+     background-position: 0 0;
+}
+
+#char_boy:hover {
+    background-position: 0 -100px;
+}
+
+#char_princess {
+    background-position: 0 -200px;
+}
+
+#char_princess:hover {
+    background-position: 0 -300px;
+}
+
+#char_pink{
+    background-position: 0 -400px;
+}
+
+#char_pink:hover {
+    background-position: 0 -500px;
+}
+
+#char_cat {
+    background-position: 0 -600px;
+}
+
+#char_cat:hover {
+    background-position: 0 -700px;
+}
+
 
 .game {
     position: absolute;
