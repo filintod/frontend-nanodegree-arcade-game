@@ -39,7 +39,7 @@ var Sprite = function(x, y, sprite, spriteMapLocation) {
      * The location of the sprite in the spriteMap image 
      */
     if (spriteMapLocation == undefined){
-        this.spriteMapLocation = [0, 0, this.image.width, this.image.height];
+        this.spriteMapLocation = [0, 0, this.image.width, this.image.height, 1, 1];
         this.width = this.image.width;
         this.height = this.image.height;
     } else {
@@ -213,9 +213,18 @@ Enemy.prototype.update = function(dt) {
  * @constructor
  */
 var Charm = function(sprite){
-    Sprite.call(this, sprite);
+    Sprite.call(this, 0, 0, sprite);
+    this.reset_location();
 };
 inherits(Charm, Sprite);
+
+/**
+ * Overrides the base class reset_location to use the randomNegativeXOffset function
+ */
+Charm.prototype.reset_location = function(){
+    this.x = BLOCK_WIDTH * Math.floor((CANVAS_ROWS - 1) * Math.random()) + 1;
+    this.y = BLOCK_HEIGHT * Math.floor((NUMBER_OF_BLOCK_ROWS - 1) * Math.random() + NUMBER_OF_WATER_ROWS);
+};
 
 
 var PLAYER_STEP_DIVISION = 4;
@@ -249,6 +258,8 @@ var Player = function(spriteMap) {
         39: this.moveRight,
         40: this.moveDown
     };
+
+    this.lives = NUMBER_OF_PLAYER_LIVES;
 };
 inherits(Player, Sprite);
 
@@ -268,6 +279,23 @@ Player.prototype.handleInput = function(keys){
             }
         }
     }
+};
+
+/**
+ * Called by the loop engine when there is a collision with a bug
+ */
+Player.prototype.touchedByBug = function(){
+    if (this.lives--) {
+        this.reset_location();
+    } else {
+        gameOVER();
+    }
+};
+
+Player.prototype.touchedCharm = function(){
+    var newCharm = charms.pop();
+    this.myCharms.push(charms.pop());
+
 };
 
 /**
@@ -359,7 +387,7 @@ var straightFunction = function(speed) {
 var sineFunction = function(speed){
     this.dt += speed;
     this.x += Math.floor(BLOCK_WIDTH * speed);
-    this.y = BLOCK_MIDDLE_Y + Math.floor((BLOCK_AREA_HEIGHT_HALF - (this.height >> 1))* Math.sin(this.dt)) - this.height / 2;
+    this.y = BLOCK_MIDDLE_Y + Math.floor((BLOCK_AREA_HEIGHT_HALF - (this.height >> 1))* Math.sin(this.dt) - this.height / 2);
 };
 
 /**
@@ -391,9 +419,8 @@ function createEnemies(count) {
 /**
  * Create the charm and set a timeout to move it in case it has not been collected
  */
-function createCharm() {
-    var x = Math.floor((CANVAS_ROWS - 1) * Math.random()) + 1;
-    var y = Math.floor(CANVAS_COLUMNS * Math.random());
+function createCharms() {
+    charms.push(new Charm(arrayOfCharms[currentCharm]));
 }
 
 /**
@@ -418,7 +445,7 @@ function addOnClickToCharacters(characters){
  * Main charactersSpriteMapLocation
  * @type {Sprite}
   */
-var allEnemies, player, charms;
+var allEnemies, player, charms=[];
 
 /**
  * Keeps track of currently pressed keys. Whenever a key is pressed its keycode is inserted here,
@@ -435,13 +462,19 @@ var keys={};
 var NUMBER_OF_ENEMIES = 10;
 
 /**
+ * Number of lives of the player before resetting the game
+ * @type {number}
+ */
+var NUMBER_OF_PLAYER_LIVES = 5;
+
+/**
  * The different avatar images that we can use.  It is a list of avatar HTML ID to image reference
  * @type {string[]}
  */
 var charactersSpriteMapLocation = {
-    'char_boy':  [0,0,80,81],
-    'char_pink': [0,400,80,81],
-    'char_cat':  [0,600,80,81]
+    'char_boy':  [0,0,80,81,1,1],
+    'char_pink': [0,400,80,81,1,1],
+    'char_cat':  [0,600,80,81,1,1]
 };
 
 /**
@@ -457,6 +490,8 @@ var arrayOfCharms = ['images/Gem Green.png', 60,
                      'images/Star.png', 20,
                      'images/Heart.png', 10];
 
+var currentCharm = 0;
+
 
 /** **********************************************************************
  *          Creates the entities after the resources are ready.
@@ -465,8 +500,7 @@ var arrayOfCharms = ['images/Gem Green.png', 60,
 function createEntities(){
     allEnemies = createEnemies(NUMBER_OF_ENEMIES);
     player = new Player(charactersSpriteMapLocation['char_boy']);
-    allCharms = createCharm();
-    charms = [];
+    allCharms = createCharms();
 
     document.addEventListener('keydown', function(e) {
         // store key value in keydown keyring

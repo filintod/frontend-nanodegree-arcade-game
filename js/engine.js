@@ -26,8 +26,8 @@ var NUMBER_OF_WATER_ROWS = 2;
 var NUMBER_OF_GRASS_ROWS = 1;
 var NUMBER_OF_BLOCK_ROWS = CANVAS_ROWS - NUMBER_OF_WATER_ROWS - NUMBER_OF_GRASS_ROWS;
 var WATER_Y_LIMIT = NUMBER_OF_WATER_ROWS * BLOCK_HEIGHT + EMPTY_AREA_TOP;
-var BLOCK_MIDDLE_Y = WATER_Y_LIMIT + BLOCK_HEIGHT * NUMBER_OF_BLOCK_ROWS / 2;
-var BLOCK_AREA_HEIGHT_HALF = BLOCK_HEIGHT * NUMBER_OF_BLOCK_ROWS / 2;
+var BLOCK_MIDDLE_Y = WATER_Y_LIMIT + BLOCK_HEIGHT * (NUMBER_OF_BLOCK_ROWS >> 1);
+var BLOCK_AREA_HEIGHT_HALF = BLOCK_HEIGHT * (NUMBER_OF_BLOCK_ROWS >> 1);
 
 function createMap() {
     var rowImages = [];
@@ -134,7 +134,7 @@ var Engine = (function(global) {
     function checkCollisions(){
         allEnemies.forEach(function(enemy) {
             if (enemy.isVisible() && enemy.collidesWith(player)) {
-                player.reset_location();
+                player.touchedByBug();
                 return 0;
             }
         });
@@ -212,6 +212,7 @@ var Engine = (function(global) {
         'images/char_sprite_map.png',
         'images/char-princess-girl.png',
         'images/Gem Blue.png',
+        'images/Gem Green.png',
         'images/Gem Orange.png',
         'images/Heart.png',
         'images/Key.png',
