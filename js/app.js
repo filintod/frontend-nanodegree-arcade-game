@@ -1,5 +1,22 @@
 // TODO: use google closure library that seems to include several methods used here (inherit, rectangle functions) @see https://developers.google.com/closure/library/
 
+var isGameOver = false;
+
+/**
+ * Shows Game over message on screen
+ */
+function gameOver(){
+    isGameOver = true;
+}
+
+/**
+ * Restart the game
+ */
+function restartGame(){
+
+}
+
+
 /**
  * DRY utility function for inheritance steps. Adding the Object.Create and putting the correct constructor back to the prototype object
  *
@@ -276,7 +293,7 @@ inherits(Player, Sprite);
  * @param keys
  */
 Player.prototype.handleInput = function(keys){
-    if (this.isAnyOfTheseKeysActionable(keys)) {
+    if (!isGameOver && this.isAnyOfTheseKeysActionable(keys)) {
         var speed = (keys[17]) ? 2 : 1;
         for (keycode in this.moveFunctionKey) {
             if (keys[keycode]) {
@@ -287,14 +304,23 @@ Player.prototype.handleInput = function(keys){
 };
 
 /**
+ * Updates the number of lives on the screen
+ */
+Player.prototype.updateLives = function(){
+    document.getElementById('counter').innerHTML = this.lives;
+};
+
+/**
  * Execute losing a life on the player. If lives count is zero the game is over, if not we just reset the counter and send
  * the player to the original location
  */
 Player.prototype.lostLife = function(){
-    if (this.lives--) {
+    this.lives -= 1;
+    this.updateLives();
+    if (this.lives > 0) {
         this.resetLocation();
     } else {
-        gameOVER();
+        gameOver();
     }
 };
 
@@ -458,8 +484,10 @@ function createEnemies(count) {
  */
 function createCharms() {
     if (currentCharm < arrayOfCharms.length) {
-        charms.push(new Charm(arrayOfCharms[currentCharm]));
-        currentCharm += 2;
+        window.setTimeout(function(){
+                charms.push(new Charm(arrayOfCharms[currentCharm]));
+                currentCharm += 2;
+        }, 1000);
     }
 }
 
@@ -541,9 +569,11 @@ var currentCharm = 0;
  */
 function createEntities(){
     player = new Player(charactersSpriteMapLocation['char_boy']);
+    player.updateLives();
     princess = new Princess();
     createEnemies(NUMBER_OF_ENEMIES, enemiesMinSpeed, enemiesSinePercentage);
     createCharms();
+
 
     document.addEventListener('keydown', function(e) {
         // store key value in keydown keyring
@@ -558,5 +588,6 @@ function createEntities(){
     // add onClick behaviors
     addOnClickToCharacters(charactersSpriteMapLocation);
 }
+
 
 Resources.onReady(createEntities);
