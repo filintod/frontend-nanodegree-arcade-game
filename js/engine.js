@@ -132,12 +132,30 @@ var Engine = (function(global) {
     }
 
     function checkCollisions(){
-        allEnemies.forEach(function(enemy) {
-            if (enemy.isVisible() && enemy.collidesWith(player)) {
-                player.touchedByBug();
-                return 0;
+        // check collision with bug
+        if (!allEnemies.some(function(enemy) {
+                    if (enemy.isVisible() && enemy.collidesWith(player)) {
+                        player.lostLife();
+                        return true;
+                    }
+                })) {
+            // check collision with charm
+            if (!charms.some(function (charm) {
+                        if (charm.isVisible() && charm.collidesWith(player)) {
+                            player.grabCharm();
+                            return true;
+                        }
+                    })) {
+                // check collision with princess
+                if (player.collidesWith(princess)) {
+                    if (player.hasHeart) {
+                        player.won();
+                    } else {
+                        player.resetLocation();
+                    }
+                }
             }
-        });
+        }
     }
 
     function renderBG(){
@@ -162,11 +180,6 @@ var Engine = (function(global) {
                 bgCtx.drawImage(Resources.get(rowImages[row]).image, col * BLOCK_WIDTH, row * BLOCK_HEIGHT);
             }
         }
-
-        // Draw Princess on top of Rock
-        var princessX = Math.floor(CANVAS_COLUMNS * Math.random()) * BLOCK_WIDTH;
-        bgCtx.drawImage(Resources.get('images/Rock.png').image, princessX, 0);
-        bgCtx.drawImage(Resources.get('images/char-princess-girl.png').image, princessX, 0);
     }
 
     /* This function is called by the main function and is called on each game
@@ -182,6 +195,9 @@ var Engine = (function(global) {
         allEnemies.forEach(function(enemy) {
             enemy.render(ctx);
         });
+
+        ctx.drawImage(Resources.get('images/Rock.png').image, princess.x, 0);
+        princess.render(ctx);
 
         player.render(ctx);
 

@@ -150,7 +150,7 @@ Sprite.prototype.render = function(ctx) {
 /**
  * Resets the location of the sprite to the original values given during creation
  */
-Sprite.prototype.reset_location = function() {
+Sprite.prototype.resetLocation = function() {
     this.x = this.xOrigin;
     this.y = this.yOrigin;
 };
@@ -170,7 +170,7 @@ var Enemy = function(x, y, speed, movement) {
     this.dt = 0;
     Sprite.call(this, x, (y + NUMBER_OF_WATER_ROWS + 1) * BLOCK_HEIGHT, 'images/bug_small.png');
     this.y = this.yOrigin -= this.height >> 1;
-    this.reset_location();
+    this.resetLocation();
 };
 inherits(Enemy, Sprite);
 
@@ -183,10 +183,10 @@ function randomNegativeXOffset(){
 }
 
 /**
- * Overrides the base class reset_location to use the randomNegativeXOffset function
+ * Overrides the base class resetLocation to use the randomNegativeXOffset function
  */
-Enemy.prototype.reset_location = function(){
-    Sprite.prototype.reset_location.call(this);
+Enemy.prototype.resetLocation = function(){
+    Sprite.prototype.resetLocation.call(this);
     this.x = Math.floor(randomNegativeXOffset());
     this.dt = 0;
 };
@@ -202,7 +202,7 @@ Enemy.prototype.update = function(dt) {
     this.move(this.speed * dt);
 
     if (this.x > CANVAS_WIDTH + this.width) {
-        this.reset_location();
+        this.resetLocation();
     }
 };
 
@@ -214,14 +214,15 @@ Enemy.prototype.update = function(dt) {
  */
 var Charm = function(sprite){
     Sprite.call(this, 0, 0, sprite);
-    this.reset_location();
+    this.resetLocation();
+    this.spriteURL = sprite;
 };
 inherits(Charm, Sprite);
 
 /**
- * Overrides the base class reset_location to use the randomNegativeXOffset function
+ * Overrides the base class resetLocation to use the randomNegativeXOffset function
  */
-Charm.prototype.reset_location = function(){
+Charm.prototype.resetLocation = function(){
     this.x = BLOCK_WIDTH * Math.floor((CANVAS_ROWS - 1) * Math.random()) + 1;
     this.y = BLOCK_HEIGHT * Math.floor((NUMBER_OF_BLOCK_ROWS - 1) * Math.random() + NUMBER_OF_WATER_ROWS);
 };
@@ -259,7 +260,11 @@ var Player = function(spriteMap) {
         40: this.moveDown
     };
 
+    // number of lives currently
     this.lives = NUMBER_OF_PLAYER_LIVES;
+
+    // true after grabbing heart charm. Without the heart it cannot grab the princess
+    this.hasHeart = false;
 };
 inherits(Player, Sprite);
 
@@ -282,20 +287,33 @@ Player.prototype.handleInput = function(keys){
 };
 
 /**
- * Called by the loop engine when there is a collision with a bug
+ * Execute losing a life on the player. If lives count is zero the game is over, if not we just reset the counter and send
+ * the player to the original location
  */
-Player.prototype.touchedByBug = function(){
+Player.prototype.lostLife = function(){
     if (this.lives--) {
-        this.reset_location();
+        this.resetLocation();
     } else {
         gameOVER();
     }
 };
 
-Player.prototype.touchedCharm = function(){
-    var newCharm = charms.pop();
-    this.myCharms.push(charms.pop());
+/**
+ * Called by the loop engine when there is a collision with a bug
+ */
 
+Player.prototype.grabCharm = function(){
+    var newCharm = charms.pop();
+    this.myCharms.push(newCharm);
+    createEnemies(NUMBER_OF_ENEMIES);
+    createCharms();
+    if (newCharm.spriteURL == 'images/psd100-Diving-mask.png'){
+        this.canSwim = true;
+    } else {
+        if (newCharm.spriteURL == 'images/Heart.png'){
+            this.hasHeart = true;
+        }
+    }
 };
 
 /**
@@ -344,8 +362,9 @@ Player.prototype._checkObstacle = function(k, v, speed){
  */
 Player.prototype.moveUp = function(speed) {
     this.y -= this.yStep * speed;
-    if (this.isEnteringObstacle())
-        this.reset_location();
+    if (this.isEnteringObstacle()) {
+        this.lostLife();
+    }
 };
 
 /**
@@ -370,6 +389,24 @@ Player.prototype.moveRight = function(speed) {
  */
 Player.prototype.moveLeft = function(speed) {
     return this._checkObstacle('x', - this.xStep, speed)
+};
+
+
+/**
+ * Class to represent a Princess
+ * @constructor
+ */
+var Princess = function(){
+    Sprite.call(this, this.getX(), 0, 'images/char-princess-girl.png');
+};
+inherits(Princess, Sprite);
+
+/**
+ * Returns the location where to put the princess
+ * @returns {number}
+ */
+Princess.prototype.getX = function(){
+        return Math.floor(CANVAS_COLUMNS * Math.random()) * BLOCK_WIDTH;
 };
 
 /**
@@ -406,21 +443,24 @@ function getEnemyMovement(sinePercentage){
  * @returns {Array}
  */
 function createEnemies(count) {
-    var enemies = [];
+    enemiesMinSpeed += 0.3;
+    enemiesSinePercentage += 0.1;
     for(var i=0; i<count ; i++){
-        var speed = 2 * Math.random() + 0.5;
+        var speed = enemiesMinSpeed * Math.random() + 0.5;
         // bugs can only be on three sections (paved area) as seen from the video
         var yLocation = Math.floor(NUMBER_OF_BLOCK_ROWS * Math.random());
-        enemies.push(new Enemy(0, yLocation, speed, getEnemyMovement(0.1)));
+        allEnemies.push(new Enemy(0, yLocation, speed, getEnemyMovement(enemiesSinePercentage)));
     }
-    return enemies;
 }
 
 /**
  * Create the charm and set a timeout to move it in case it has not been collected
  */
 function createCharms() {
-    charms.push(new Charm(arrayOfCharms[currentCharm]));
+    if (currentCharm < arrayOfCharms.length) {
+        charms.push(new Charm(arrayOfCharms[currentCharm]));
+        currentCharm += 2;
+    }
 }
 
 /**
@@ -445,7 +485,9 @@ function addOnClickToCharacters(characters){
  * Main charactersSpriteMapLocation
  * @type {Sprite}
   */
-var allEnemies, player, charms=[];
+var allEnemies=[], player, princess, charms=[];
+
+var enemiesMinSpeed=2, enemiesSinePercentage=0.05;
 
 /**
  * Keeps track of currently pressed keys. Whenever a key is pressed its keycode is inserted here,
@@ -459,7 +501,7 @@ var keys={};
  * Number of Enemies to start with. It will increase as we progress
  * @type {number}
  */
-var NUMBER_OF_ENEMIES = 10;
+var NUMBER_OF_ENEMIES = 3;
 
 /**
  * Number of lives of the player before resetting the game
@@ -498,9 +540,10 @@ var currentCharm = 0;
  *  **********************************************************************
  */
 function createEntities(){
-    allEnemies = createEnemies(NUMBER_OF_ENEMIES);
     player = new Player(charactersSpriteMapLocation['char_boy']);
-    allCharms = createCharms();
+    princess = new Princess();
+    createEnemies(NUMBER_OF_ENEMIES, enemiesMinSpeed, enemiesSinePercentage);
+    createCharms();
 
     document.addEventListener('keydown', function(e) {
         // store key value in keydown keyring
