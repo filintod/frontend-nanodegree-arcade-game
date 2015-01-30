@@ -14,27 +14,30 @@
  * a little simpler to work with.
  */
 
-var X_OFFSET = 101;
-var Y_OFFSET = 81;
-var CANVAS_ROWS = 8;
+var BLOCK_WIDTH = 101;
+var BLOCK_HEIGHT = 81;
+var EMPTY_AREA_TOP = 50;
+var CANVAS_ROWS = 5;
 var CANVAS_COLUMNS = 8;
-var CANVAS_WIDTH = X_OFFSET * CANVAS_COLUMNS;
-var CANVAS_HEIGHT = X_OFFSET * CANVAS_ROWS;
-var NUMBER_OF_WATER_ROWS = 1;
-var NUMBER_OF_GRASS_ROWS = 2;
+var CANVAS_WIDTH = BLOCK_WIDTH * CANVAS_COLUMNS;
+var CANVAS_HEIGHT = BLOCK_WIDTH * CANVAS_ROWS;
+var NUMBER_OF_WATER_ROWS = 2;
+var NUMBER_OF_GRASS_ROWS = 1;
 var NUMBER_OF_BLOCK_ROWS = CANVAS_ROWS - NUMBER_OF_WATER_ROWS - NUMBER_OF_GRASS_ROWS;
+var WATER_Y_LIMIT = NUMBER_OF_WATER_ROWS * BLOCK_HEIGHT + EMPTY_AREA_TOP;
 
 function createMap() {
     var rowImages = [];
 
-    var appendToRows = function(n, v){
-        for(var i=0; i<n ; i++)
-            rowImages.push(v);
+    var appendToRows = function(list){
+        for(var i=0; i<list.length ; i+= 2)
+            for(var j=0; j<list[i] ; j++)
+                rowImages.push(list[i+1]);
     };
 
-    appendToRows(NUMBER_OF_WATER_ROWS, 'images/water-block.png');
-    appendToRows(NUMBER_OF_BLOCK_ROWS, 'images/stone-block.png');
-    appendToRows(NUMBER_OF_GRASS_ROWS, 'images/grass-block.png');
+    appendToRows([NUMBER_OF_WATER_ROWS, 'images/water-block.png',
+                  NUMBER_OF_BLOCK_ROWS, 'images/stone-block.png',
+                  NUMBER_OF_GRASS_ROWS, 'images/grass-block.png']);
 
     return rowImages;
 }
@@ -153,9 +156,14 @@ var Engine = (function(global) {
                  * so that we get the benefits of caching these images, since
                  * we're using them over and over.
                  */
-                bgCtx.drawImage(Resources.get(rowImages[row]).image, col * X_OFFSET, row * Y_OFFSET);
+                bgCtx.drawImage(Resources.get(rowImages[row]).image, col * BLOCK_WIDTH, row * BLOCK_HEIGHT);
             }
         }
+
+        // Draw Princess on top of Rock
+        var princessX = Math.floor(CANVAS_COLUMNS * Math.random()) * BLOCK_WIDTH;
+        bgCtx.drawImage(Resources.get('images/Rock.png').image, princessX, 0);
+        bgCtx.drawImage(Resources.get('images/char-princess-girl.png').image, princessX, 0);
     }
 
     /* This function is called by the main function and is called on each game
@@ -196,12 +204,16 @@ var Engine = (function(global) {
         'images/stone-block.png',
         'images/water-block.png',
         'images/grass-block.png',
-        'images/enemy-bug.png',
+        'images/Rock.png',
         'images/bug_small.png',
-        'images/char-boy.png',
+        'images/char_sprite_map.png',
         'images/char-princess-girl.png',
-        'images/char-cat-girl.png',
-        'images/char-pink-girl.png'
+        'images/Gem Blue.png',
+        'images/Gem Orange.png',
+        'images/Heart.png',
+        'images/Key.png',
+        'images/Star.png',
+        'images/psd100-Diving-mask.png'
     ]);
     Resources.onReady(init);
 

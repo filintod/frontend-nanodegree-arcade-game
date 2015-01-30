@@ -1,5 +1,5 @@
 /**
- * Creates an array of alpha values for the image provided. The value added is either 0 or something else depending
+ * Creates an array of alpha values for the image provided. The value added is either 0 or an alpha value depending
  * weather the pixel has no color and the alpha channel value is > 0
  *
  * @param image
@@ -16,7 +16,7 @@ function getAlphaPixels(image){
     var alphaArray = new Uint8Array(img_data.length >> 2);
     var j=0;
     for(var i=0; i<img_data.length; i+=4)
-        alphaArray[j++] = ((img_data[i] || img_data[i + 1] || img_data[i + 2]) && img_data[i + 3]) | 0;
+        alphaArray[j++] = (img_data[i] || img_data[i + 1] || img_data[i + 2]) && img_data[i + 3];
 
     return alphaArray;
 }
