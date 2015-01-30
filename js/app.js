@@ -129,7 +129,7 @@ Sprite.prototype.update = function(dt){
 };
 
 /**
- * Checks weather the sprite is visible in the canvas
+ * Checks weather the sprite is visible on the canvas
  * @returns {boolean}
  */
 Sprite.prototype.isVisible = function() {
@@ -142,7 +142,6 @@ Sprite.prototype.isVisible = function() {
  */
 Sprite.prototype.render = function(ctx) {
     if (this.isVisible()) {
-        drawImage = function(img_elem,dx_or_sx,dy_or_sy,dw_or_sw,dh_or_sh,dx,dy,dw,dh) {};
         ctx.drawImage(this.image, this.spriteMapLocation[0], this.spriteMapLocation[1], this.width, this.height, 
                                   this.x, this.y, this.width, this.height);
     }
@@ -170,7 +169,7 @@ var Enemy = function(x, y, speed, movement) {
     this.speed = speed;
     this.dt = 0;
     Sprite.call(this, x, (y + NUMBER_OF_WATER_ROWS + 1) * BLOCK_HEIGHT, 'images/bug_small.png');
-    this.y = this.yOrigin -= Math.floor(this.height / 2);
+    this.y = this.yOrigin -= this.height >> 1;
     this.reset_location();
 };
 inherits(Enemy, Sprite);
@@ -227,8 +226,9 @@ var PLAYER_STEP_DIVISION = 4;
  * @constructor
  */
 var Player = function(spriteMap) {
-    Sprite.call(this, Math.floor((CANVAS_WIDTH - BLOCK_WIDTH) / 2), CANVAS_HEIGHT - NUMBER_OF_GRASS_ROWS * BLOCK_HEIGHT,
-        'images/char_sprite_map.png', spriteMap);
+    var middleOfGrassY = BLOCK_HEIGHT * (NUMBER_OF_BLOCK_ROWS + NUMBER_OF_WATER_ROWS + 1);
+    var middleOfGrassX = (CANVAS_WIDTH - spriteMap[2])  >> 1;
+    Sprite.call(this, middleOfGrassX, middleOfGrassY, 'images/char_sprite_map.png', spriteMap);
 
     // array of charms collected by this player
     this.myCharms = [];
@@ -290,8 +290,23 @@ Player.prototype.isEnteringObstacle = function(){
     } else {
         return (this.x < 0 ||
                 this.x + this.width > CANVAS_WIDTH ||
-                this.y + this.height > CANVAS_HEIGHT
+                this.y + this.height > CANVAS_HEIGHT - EMPTY_AREA_BOT
                );
+    }
+};
+
+/** DRY function for moving avatar
+ *
+ * @param k {'x'|'y'} - coordinate to use
+ * @param v - step value
+ * @param speed - speed to move
+ * @private
+ */
+Player.prototype._checkObstacle = function(k, v, speed){
+    v *= speed;
+    this[k] += v;
+    if (this.isEnteringObstacle()) {
+        this[k] -= v << 1;
     }
 };
 
@@ -310,9 +325,7 @@ Player.prototype.moveUp = function(speed) {
  * @param speed {Number}
  */
 Player.prototype.moveDown = function(speed) {
-    this.y += this.yStep * speed;
-    if (this.isEnteringObstacle())
-        this.y = Math.floor(BLOCK_HEIGHT * (CANVAS_ROWS - 1 / PLAYER_STEP_DIVISION));
+    return this._checkObstacle('y', this.yStep, speed)
 };
 
 /**
@@ -320,11 +333,7 @@ Player.prototype.moveDown = function(speed) {
  * @param speed {Number}
  */
 Player.prototype.moveRight = function(speed) {
-    this.x += this.xStep * speed;
-    if (this.isEnteringObstacle()) {
-        // moves player back to simulate hitting a wall
-        this.x = Math.floor(BLOCK_WIDTH * (CANVAS_COLUMNS - 1 -  1 / PLAYER_STEP_DIVISION));
-    }
+    return this._checkObstacle('x', this.xStep, speed)
 };
 
 /**
@@ -332,11 +341,7 @@ Player.prototype.moveRight = function(speed) {
  * @param speed {Number}
  */
 Player.prototype.moveLeft = function(speed) {
-    this.x -= this.xStep * speed;
-    if (this.isEnteringObstacle()) {
-        // moves player back to simulate hitting a wall
-        this.x = Math.floor(BLOCK_WIDTH / PLAYER_STEP_DIVISION);
-    }
+    return this._checkObstacle('x', - this.xStep, speed)
 };
 
 /**
@@ -354,7 +359,7 @@ var straightFunction = function(speed) {
 var sineFunction = function(speed){
     this.dt += speed;
     this.x += Math.floor(BLOCK_WIDTH * speed);
-    this.y = Math.floor(BLOCK_HEIGHT * (Math.sin(this.dt) * NUMBER_OF_BLOCK_ROWS / 2 + NUMBER_OF_WATER_ROWS)) + EMPTY_AREA_TOP;
+    this.y = BLOCK_MIDDLE_Y + Math.floor((BLOCK_AREA_HEIGHT_HALF - (this.height >> 1))* Math.sin(this.dt)) - this.height / 2;
 };
 
 /**
@@ -427,7 +432,7 @@ var keys={};
  * Number of Enemies to start with. It will increase as we progress
  * @type {number}
  */
-var NUMBER_OF_ENEMIES = 3;
+var NUMBER_OF_ENEMIES = 10;
 
 /**
  * The different avatar images that we can use.  It is a list of avatar HTML ID to image reference
