@@ -1,5 +1,4 @@
 #Frontend Nanodegree - Arcade Game
-==================================
 
 ## Objective of the Game:
 
