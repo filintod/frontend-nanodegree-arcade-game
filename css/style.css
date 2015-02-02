@@ -8,8 +8,6 @@ body {
     margin-bottom: 0;
 }
 
-
-
 .characters {
     width: 80px;
     height: 100px;
@@ -25,7 +23,7 @@ body {
      background-position: 0 0;
 }
 
-#char_boy:hover {
+#char_boy:hover, #char_boy.selected {
     background-position: 0 -100px;
 }
 
@@ -33,7 +31,7 @@ body {
     background-position: 0 -200px;
 }
 
-#char_princess:hover {
+#char_princess:hover, #char_princess.selected {
     background-position: 0 -300px;
 }
 
@@ -41,7 +39,7 @@ body {
     background-position: 0 -400px;
 }
 
-#char_pink:hover {
+#char_pink:hover, #char_pink.selected {
     background-position: 0 -500px;
 }
 
@@ -49,7 +47,7 @@ body {
     background-position: 0 -600px;
 }
 
-#char_cat:hover {
+#char_cat:hover, #char_cat.selected {
     background-position: 0 -700px;
 }
 

@@ -3,19 +3,58 @@
 var isGameOver = false;
 
 /**
+ * DRY function to draw fill and stroke text
+ * @param txt
+ * @param x
+ * @param y
+ */
+function drawTextWhiteBlack(txt, x, y){
+    fgCtx.fillText(txt, x, y);
+    fgCtx.strokeText(txt, x, y);
+}
+
+/**
+ * DRY function to write message on screen and stop the game (isGameOver = True). For some reason I need a timeout before calling this. Need to check why...
+ * @param message
+ */
+function showMessageAfterLostWin(message){
+    fgCtx.font = "80pt 'Press Start 2P'";
+    fgCtx.strokeStyle = "black";
+    fgCtx.fillStyle = "white";
+    var words = message.split(' ');
+    var xLoc = (CANVAS_WIDTH - fgCtx.measureText(words[1]).width) >> 1;
+    drawTextWhiteBlack(words[0], xLoc, (CANVAS_HEIGHT >> 1) - 100);
+    drawTextWhiteBlack(words[1], xLoc, (CANVAS_HEIGHT >> 1) + 100);
+    fgCtx.font = "20pt 'Press Start 2P'";
+    drawTextWhiteBlack('Press R to restart', xLoc, (CANVAS_HEIGHT >> 1) + 200);
+}
+
+/**
  * Shows Game over message on screen
  */
 function gameOver(){
     isGameOver = true;
+    setTimeout(function(){showMessageAfterLostWin('Game Over!'); }, 100);
+}
+
+/**
+ * Player got princess with Heart
+ */
+function playerWon(){
+    isGameOver = true;
+    setTimeout(function(){showMessageAfterLostWin('You WON!'); }, 100);
+    showMessageAfterLostWin('You WON!');
 }
 
 /**
  * Restart the game
  */
 function restartGame(){
-
+    player.initPlayer();
+    princess.resetLocation();
+    createEnemiesAndCharms();
+    isGameOver = false;
 }
-
 
 /**
  * DRY utility function for inheritance steps. Adding the Object.Create and putting the correct constructor back to the prototype object
@@ -289,8 +328,21 @@ var Player = function(spriteMap) {
 
     // true after grabbing heart charm. Without the heart it cannot grab the princess
     this.hasHeart = false;
+    this.initPlayer();
 };
 inherits(Player, Sprite);
+
+
+Player.prototype.initPlayer = function(){
+    var charmHTML = document.getElementById('charms');
+    charmHTML.innerHTML = "";
+    this.myCharms = [];
+    this.resetLocation();
+    this.updateLives();
+    this.lives = NUMBER_OF_PLAYER_LIVES;
+    this.hasHeart = false;
+    this.canSwim = false;
+};
 
 /**
  * Move the player depending on what keys are currently being pressed.
@@ -347,6 +399,7 @@ Player.prototype._appendCharmImage = function(charmURL){
     imgNode.width = "70";
     charmHTML.appendChild(imgNode);
 };
+
 
 /**
  * Called by the loop engine to check for collisions with charms. If the charm is a diving mask the player will be able to swim
@@ -471,6 +524,14 @@ Princess.prototype.getX = function(){
 };
 
 /**
+ * Overrides the base class resetLocation to use the getX function
+ */
+Princess.prototype.resetLocation = function(){
+    Sprite.prototype.resetLocation.call(this);
+    this.x = this.getX();
+};
+
+/**
  * Function to represent horizontal left to right movement of a sprite
  * @param speed
  */
@@ -519,9 +580,11 @@ function createEnemies(count) {
  */
 function createCharms() {
     if (currentCharm < arrayOfCharms.length) {
-        window.setTimeout(function(){
+        window.setTimeout(function() {
+            if (!isGameOver) {
                 charms.push(new Charm(arrayOfCharms[currentCharm]));
                 currentCharm += 2;
+            }
         }, 1000);
     }
 }
@@ -561,7 +624,7 @@ var allEnemies=[], charms=[];
  * Starting values for the Enemies speed and what percentage of the bugs will have sinusoidal movement
  * @type {number}
  */
-var enemiesMinSpeed=2, enemiesSinePercentage=0.05;
+var enemiesMinSpeed, enemiesSinePercentage;
 
 /**
  * Keeps track of currently pressed keys. Whenever a key is pressed its keycode is inserted here,
@@ -610,25 +673,45 @@ var arrayOfCharms = ['images/Gem Green.png', 60,
  * Keeps track of the current charm index that is shown in the screen that has not been grabbed yet
  * @type {number}
  */
-var currentCharm = 0;
+var currentCharm;
 
 
 /** **********************************************************************
  *          Creates the entities after the resources are ready.
  *  **********************************************************************
  */
-function createEntities(){
-    player = new Player(charactersSpriteMapLocation['char_boy']);
-    player.updateLives();
-    princess = new Princess();
+
+function createEnemiesAndCharms() {
+    allEnemies = [];
+    charms = [];
+    enemiesMinSpeed = 2;
+    enemiesSinePercentage = 0.05;
+    currentCharm = 0;
+    keys = {};
+
     createEnemies(NUMBER_OF_ENEMIES);
     createCharms();
 
+}
+
+function createEntities(){
+    player = new Player(charactersSpriteMapLocation['char_boy']);
+    princess = new Princess();
+    createEnemiesAndCharms();
+}
+
+function addEventListeners(){
     // add keydown event listener. Add key press to array of keys pressed at the moment
     document.addEventListener('keydown', function(e) {
         // store key value in keydown keyring
-        keys[e.keyCode] = true;
-        player.handleInput(keys);
+        if (e.keyCode ==  82){
+            restartGame();
+        } else {
+            if (!isGameOver) {
+                keys[e.keyCode] = true;
+                player.handleInput(keys);
+            }
+        }
     });
 
     // add keyup event listener. Remove key from list of keys pressed at the moment
@@ -642,3 +725,4 @@ function createEntities(){
 
 // call the creation of entities after all resources have been loaded
 Resources.onReady(createEntities);
+Resources.onReady(addEventListeners);
