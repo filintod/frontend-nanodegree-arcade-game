@@ -7,9 +7,9 @@
 charms that will appear on the blocks while avoiding the bugs.  The bugs will increase in speed and quantity the more
 charms you grabbed.  There are two special charms, the diving mask that will let you swim, and the heart.
 Without a heart you cannot rescue the princess.
- * The player will have 5 lives that will be lost every time it touches any bug or when entering the water without a
- diving mask. Whenever it dies it goes to the original location.
- * If the player tries to rescue the princess without a heart it will be sent to its original location.
+* The player will have 5 lives that will be lost every time it touches any bug or when entering the water without a
+diving mask. Whenever it dies it goes to the original location.
+* If the player tries to rescue the princess without a heart it will be sent to its original location.
 
 ## How to control the player:
 
