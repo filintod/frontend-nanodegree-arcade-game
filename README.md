@@ -1,5 +1,21 @@
 #Frontend Nanodegree - Arcade Game
 
+This is a forked of the Udacity Arcade Game in pursuing of the Front End Nanodegree.
+
+I have made some modifications/improvements to original js files:
+
+*engine.js*
+* Added a create map function to create the background map.
+* Split the context into background (never changes) and foreground context to speed up rendering
+
+*resources.js*
+* Change the object resourceCache so that it will contain the image data and the alpha data of the image. This was done
+so collisions could be detected by alpha values of the sprites as I noted that the rectangle collision detection was too
+coarse for our avatars.
+
+The index.html file contains elements to show avatars that can be chosen and updates the values of the lives left and
+what charms have been collected so far.
+
 ## Objective of the Game:
 
 * You should try to rescue the princess from her rock island.  But you cannot swim, so you will have to grabbed the
