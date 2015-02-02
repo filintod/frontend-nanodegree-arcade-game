@@ -25,11 +25,13 @@
                     </ul>
                 </div>
                 <div class="col-md-8">
-                    <canvas id="bgCanvas" style="z-index: 0" class="game"></canvas>
-                    <canvas id="fgCanvas" style="z-index: 1" class="game"></canvas>
+                    <div id="game-canvas">
+                        <canvas id="bgCanvas" style="z-index: 0" class="game"></canvas>
+                        <canvas id="fgCanvas" style="z-index: 1" class="game"></canvas>
+                    </div>
                 </div>
-                <div class="col-md-2">
-                    <h3>Lives: <div id="counter"></div></h3>
+                <div class="col-md-2" style="text-align: center">
+                    <h3>Lives: <span id="counter"></span></h3>
                     <h3>Charms: </h3><div id="charms"></div>
                 </div>
             </div>

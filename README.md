@@ -1,16 +1,24 @@
-frontend-nanodegree-arcade-game
-===============================
+#Frontend Nanodegree - Arcade Game
+==================================
 
-Students should use this rubric: https://www.udacity.com/course/viewer#!/c-ud015/l-3072058665/m-3072588797
+## Objective of the Game:
 
-for self-checking their submission.
+* You should try to rescue the princess from her rock island.  But you cannot swim, so you will have to grabbed the
+charms that will appear on the blocks while avoiding the bugs.  The bugs will increase in speed and quantity the more
+charms you grabbed.  There are two special charms, the diving mask that will let you swim, and the heart.
+Without a heart you cannot rescue the princess.
+ * The player will have 5 lives that will be lost every time it touches any bug or when entering the water without a
+ diving mask. Whenever it dies it goes to the original location.
+ * If the player tries to rescue the princess without a heart it will be sent to its original location.
 
-The game uses the arrow keys to move the player.  More than one key can be pressed at the same time
-making it possible to move diagonally.
+## How to control the player:
 
-There is also a speed-up when pressing the CTRL key.
+* The game uses the arrow keys to move the player.
+* More than one key can be pressed at the same time making it possible to move diagonally.
+* There is also a speed-up of 2X when pressing the CTRL key in addition to the arrow keys.
 
-Player should collect charms position on the table and evade the bugs present.  The more charms collected, the faster
-and more abundant the bugs will be.
+## How to select an avatar:
 
-Player will be reset to its position if touch by one of the bugs or if it falls into the water.
+* Just click on any of the avatar images on the left pane.
+* You can change the avatar during play.
+

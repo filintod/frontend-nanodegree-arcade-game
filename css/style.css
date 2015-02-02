@@ -3,10 +3,12 @@ body {
 }
 
 .first_character {
-    padding-top: 0px;
-    padding-bottom: 0px;
-    margin-bottom: 0px;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
 }
+
+
 
 .characters {
     width: 80px;
@@ -51,9 +53,22 @@ body {
     background-position: 0 -700px;
 }
 
-
 .game {
     position: absolute;
-    left: 10px;
-    top: 10px;
+    left: 0;
+}
+
+#charms {
+    width: 100px;
+    margin: 0 auto;
+}
+
+.charm-image {
+    margin: -10px auto 0;
+}
+
+#game-canvas {
+    padding: 0;
+    margin: 0 auto;
+    position: relative;
 }

@@ -19,7 +19,7 @@ var BLOCK_HEIGHT = 81;
 var EMPTY_AREA_TOP = 50;
 var EMPTY_AREA_BOT = 40;
 var CANVAS_ROWS = 7;
-var CANVAS_COLUMNS = 8;
+var CANVAS_COLUMNS = 7;
 var CANVAS_WIDTH = BLOCK_WIDTH * CANVAS_COLUMNS;
 var CANVAS_HEIGHT = BLOCK_WIDTH * CANVAS_ROWS;
 var NUMBER_OF_WATER_ROWS = 2;
@@ -29,6 +29,10 @@ var WATER_Y_LIMIT = NUMBER_OF_WATER_ROWS * BLOCK_HEIGHT + EMPTY_AREA_TOP;
 var BLOCK_MIDDLE_Y = WATER_Y_LIMIT + BLOCK_HEIGHT * (NUMBER_OF_BLOCK_ROWS >> 1);
 var BLOCK_AREA_HEIGHT_HALF = BLOCK_HEIGHT * (NUMBER_OF_BLOCK_ROWS >> 1);
 
+/**
+ * Creates the background map and changes the width of the game-canvas div to center it.
+ * @returns {Array}
+ */
 function createMap() {
     var rowImages = [];
 
@@ -41,6 +45,9 @@ function createMap() {
     appendToRows([NUMBER_OF_WATER_ROWS, 'images/water-block.png',
                   NUMBER_OF_BLOCK_ROWS, 'images/stone-block.png',
                   NUMBER_OF_GRASS_ROWS, 'images/grass-block.png']);
+
+    var gameCanvas = document.getElementById('game-canvas');
+    gameCanvas.style.width = (CANVAS_COLUMNS * BLOCK_WIDTH) + 'px';
 
     return rowImages;
 }

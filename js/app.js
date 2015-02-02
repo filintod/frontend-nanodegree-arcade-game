@@ -190,7 +190,7 @@ var Enemy = function(x, y, speed, movement) {
     this.resetLocation();
 
     /**
-     * Precalculation of height of sprite that might be use in the sinusoidal movement
+     * Pre-calculation of height of sprite that might be use in the sinusoidal movement
      * @type {Number}
      */
     this.height_half = this.height >> 1;
@@ -331,6 +331,23 @@ Player.prototype.lostLife = function(){
     }
 };
 
+
+/**
+ * Appends img tag with the URL of the charm we just grabbed to the chams HTML div.
+ * Note: we are not using jQuery that would make this step much simpler.
+ *
+ * @param {String} charmURL - the URL of the charm we got
+ */
+Player.prototype._appendCharmImage = function(charmURL){
+    var charmHTML = document.getElementById('charms');
+    var imgNode = document.createElement('img');
+    imgNode.src = charmURL;
+    imgNode.className = "charm-image";
+    imgNode.height = "100";
+    imgNode.width = "70";
+    charmHTML.appendChild(imgNode);
+};
+
 /**
  * Called by the loop engine to check for collisions with charms. If the charm is a diving mask the player will be able to swim
  * in the water, if the charm is the heart the player will be able to rescue the princess (no heart no princess)
@@ -339,6 +356,7 @@ Player.prototype.lostLife = function(){
 Player.prototype.grabCharm = function(){
     var newCharm = charms.pop();
     this.myCharms.push(newCharm);
+    this._appendCharmImage(newCharm.spriteURL);
     createEnemies(NUMBER_OF_ENEMIES);
     createCharms();
     if (newCharm.spriteURL == 'images/psd100-Diving-mask.png'){
@@ -356,13 +374,26 @@ Player.prototype.grabCharm = function(){
  * @returns {boolean}
  */
 Player.prototype.isAnyOfTheseKeysActionable = function(keys){
-    return this.moveFunctionKey.some(function(k){ return keys[k];});
+    for(var k in this.moveFunctionKey){
+        if (keys[k])
+            return true;
+    }
+    return false;
 };
 
-Player.prototype.isEnteringObstacle = function(){
+/**
+ * Checks weather the Player is entering and obstacle area (bottom and side walls and the water on top)
+ * @param {boolean} [checkWaterLimit=false] - flag to indicate we want to check water limit like moving up
+ * @returns {boolean}
+ */
+Player.prototype.isEnteringObstacle = function(checkWaterLimit){
+    // default value
+    if (checkWaterLimit === undefined)
+        checkWaterLimit = false;
 
-    if (this.y + this.height < WATER_Y_LIMIT){
+    if (checkWaterLimit && this.y + this.height < WATER_Y_LIMIT){
         return (!this.canSwim);
+
     } else {
         return (this.x < 0 ||
                 this.x + this.width > CANVAS_WIDTH ||
@@ -392,7 +423,7 @@ Player.prototype._moveIfNoObstacle = function(k, v, speed){
  */
 Player.prototype.moveUp = function(speed) {
     this.y -= this.yStep * speed;
-    if (this.isEnteringObstacle()) {
+    if (this.isEnteringObstacle(true)) {
         this.lostLife();
     }
 };
@@ -526,6 +557,10 @@ var player, princess;
  */
 var allEnemies=[], charms=[];
 
+/**
+ * Starting values for the Enemies speed and what percentage of the bugs will have sinusoidal movement
+ * @type {number}
+ */
 var enemiesMinSpeed=2, enemiesSinePercentage=0.05;
 
 /**
