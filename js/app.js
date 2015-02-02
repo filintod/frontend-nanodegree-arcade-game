@@ -188,6 +188,13 @@ var Enemy = function(x, y, speed, movement) {
     Sprite.call(this, x, (y + NUMBER_OF_WATER_ROWS + 1) * BLOCK_HEIGHT, 'images/bug_small.png');
     this.y = this.yOrigin -= this.height >> 1;
     this.resetLocation();
+
+    /**
+     * Precalculation of height of sprite that might be use in the sinusoidal movement
+     * @type {Number}
+     */
+    this.height_half = this.height >> 1;
+
 };
 inherits(Enemy, Sprite);
 
@@ -311,7 +318,7 @@ Player.prototype.updateLives = function(){
 };
 
 /**
- * Execute losing a life on the player. If lives count is zero the game is over, if not we just reset the counter and send
+ * Execute losing a life on the player. If lives count is zero the game is over, if not we just update the counter and send
  * the player to the original location
  */
 Player.prototype.lostLife = function(){
@@ -325,7 +332,8 @@ Player.prototype.lostLife = function(){
 };
 
 /**
- * Called by the loop engine when there is a collision with a bug
+ * Called by the loop engine to check for collisions with charms. If the charm is a diving mask the player will be able to swim
+ * in the water, if the charm is the heart the player will be able to rescue the princess (no heart no princess)
  */
 
 Player.prototype.grabCharm = function(){
@@ -343,16 +351,12 @@ Player.prototype.grabCharm = function(){
 };
 
 /**
- * Checks weather any of the pressed keys is an move key
+ * Checks weather any of the pressed keys is a move key
  * @param keys {Array}
  * @returns {boolean}
  */
 Player.prototype.isAnyOfTheseKeysActionable = function(keys){
-    for(key in this.moveFunctionKey) {
-        if (keys[key])
-            return true;
-    }
-    return false;
+    return this.moveFunctionKey.some(function(k){ return keys[k];});
 };
 
 Player.prototype.isEnteringObstacle = function(){
@@ -374,7 +378,7 @@ Player.prototype.isEnteringObstacle = function(){
  * @param speed - speed to move
  * @private
  */
-Player.prototype._checkObstacle = function(k, v, speed){
+Player.prototype._moveIfNoObstacle = function(k, v, speed){
     v *= speed;
     this[k] += v;
     if (this.isEnteringObstacle()) {
@@ -398,7 +402,7 @@ Player.prototype.moveUp = function(speed) {
  * @param speed {Number}
  */
 Player.prototype.moveDown = function(speed) {
-    return this._checkObstacle('y', this.yStep, speed)
+    return this._moveIfNoObstacle('y', this.yStep, speed)
 };
 
 /**
@@ -406,7 +410,7 @@ Player.prototype.moveDown = function(speed) {
  * @param speed {Number}
  */
 Player.prototype.moveRight = function(speed) {
-    return this._checkObstacle('x', this.xStep, speed)
+    return this._moveIfNoObstacle('x', this.xStep, speed)
 };
 
 /**
@@ -414,7 +418,7 @@ Player.prototype.moveRight = function(speed) {
  * @param speed {Number}
  */
 Player.prototype.moveLeft = function(speed) {
-    return this._checkObstacle('x', - this.xStep, speed)
+    return this._moveIfNoObstacle('x', - this.xStep, speed)
 };
 
 
@@ -428,11 +432,11 @@ var Princess = function(){
 inherits(Princess, Sprite);
 
 /**
- * Returns the location where to put the princess
+ * Returns the location where to put the princess at
  * @returns {number}
  */
 Princess.prototype.getX = function(){
-        return Math.floor(CANVAS_COLUMNS * Math.random()) * BLOCK_WIDTH;
+    return Math.floor(CANVAS_COLUMNS * Math.random()) * BLOCK_WIDTH;
 };
 
 /**
@@ -450,7 +454,7 @@ var straightFunction = function(speed) {
 var sineFunction = function(speed){
     this.dt += speed;
     this.x += Math.floor(BLOCK_WIDTH * speed);
-    this.y = BLOCK_MIDDLE_Y + Math.floor((BLOCK_AREA_HEIGHT_HALF - (this.height >> 1))* Math.sin(this.dt) - this.height / 2);
+    this.y = BLOCK_MIDDLE_Y + Math.floor((BLOCK_AREA_HEIGHT_HALF - this.height_half) * Math.sin(this.dt) - this.height_half);
 };
 
 /**
@@ -510,10 +514,17 @@ function addOnClickToCharacters(characters){
  */
 
 /**
- * Main charactersSpriteMapLocation
+ * Player and Princess
  * @type {Sprite}
-  */
-var allEnemies=[], player, princess, charms=[];
+ *
+ */
+var player, princess;
+
+/**
+ * Array of Enemies and Charms
+ * @type {Array}
+ */
+var allEnemies=[], charms=[];
 
 var enemiesMinSpeed=2, enemiesSinePercentage=0.05;
 
@@ -539,7 +550,7 @@ var NUMBER_OF_PLAYER_LIVES = 5;
 
 /**
  * The different avatar images that we can use.  It is a list of avatar HTML ID to image reference
- * @type {string[]}
+ * @type {object}
  */
 var charactersSpriteMapLocation = {
     'char_boy':  [0,0,80,81,1,1],
@@ -560,6 +571,10 @@ var arrayOfCharms = ['images/Gem Green.png', 60,
                      'images/Star.png', 20,
                      'images/Heart.png', 10];
 
+/**
+ * Keeps track of the current charm index that is shown in the screen that has not been grabbed yet
+ * @type {number}
+ */
 var currentCharm = 0;
 
 
@@ -571,23 +586,24 @@ function createEntities(){
     player = new Player(charactersSpriteMapLocation['char_boy']);
     player.updateLives();
     princess = new Princess();
-    createEnemies(NUMBER_OF_ENEMIES, enemiesMinSpeed, enemiesSinePercentage);
+    createEnemies(NUMBER_OF_ENEMIES);
     createCharms();
 
-
+    // add keydown event listener. Add key press to array of keys pressed at the moment
     document.addEventListener('keydown', function(e) {
         // store key value in keydown keyring
         keys[e.keyCode] = true;
         player.handleInput(keys);
     });
 
+    // add keyup event listener. Remove key from list of keys pressed at the moment
     document.addEventListener('keyup', function(e) {
         delete keys[e.keyCode];
     });
 
-    // add onClick behaviors
+    // add onClick behaviors for the avatars so we can switch avatars.
     addOnClickToCharacters(charactersSpriteMapLocation);
 }
 
-
+// call the creation of entities after all resources have been loaded
 Resources.onReady(createEntities);
