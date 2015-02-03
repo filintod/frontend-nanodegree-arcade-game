@@ -340,11 +340,11 @@ Player.prototype.initPlayer = function(){
     var charmHTML = document.getElementById('charms');
     charmHTML.innerHTML = "";
     this.myCharms = [];
-    this.resetLocation();
-    this.updateLives();
     this.lives = NUMBER_OF_PLAYER_LIVES;
     this.hasHeart = false;
     this.canSwim = false;
+    this.resetLocation();
+    this.updateLives();
 };
 
 /**
