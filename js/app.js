@@ -333,6 +333,9 @@ var Player = function(spriteMap) {
 inherits(Player, Sprite);
 
 
+/**
+ * Resets player parameters to its original values.
+ */
 Player.prototype.initPlayer = function(){
     var charmHTML = document.getElementById('charms');
     charmHTML.innerHTML = "";
@@ -353,7 +356,9 @@ Player.prototype.initPlayer = function(){
  */
 Player.prototype.handleInput = function(keys){
     if (!isGameOver && this.isAnyOfTheseKeysActionable(keys)) {
+        // if CTRL is pressed speed up the player
         var speed = (keys[17]) ? 2 : 1;
+
         for (keycode in this.moveFunctionKey) {
             if (keys[keycode]) {
                 this.moveFunctionKey[keycode].call(this,speed);
@@ -386,7 +391,7 @@ Player.prototype.lostLife = function(){
 
 /**
  * Appends img tag with the URL of the charm we just grabbed to the chams HTML div.
- * Note: we are not using jQuery that would make this step much simpler.
+ * Note: we are not using jQuery that would make this step much simpler looking.
  *
  * @param {String} charmURL - the URL of the charm we got
  */
@@ -647,7 +652,9 @@ var NUMBER_OF_ENEMIES = 3;
 var NUMBER_OF_PLAYER_LIVES = 5;
 
 /**
- * The different avatar images that we can use.  It is a list of avatar HTML ID to image reference
+ * The different avatar images that we can use.  It is a list of avatar HTML ID to image reference and
+ * its location in the sprite map
+ *
  * @type {object}
  */
 var charactersSpriteMapLocation = {
@@ -656,6 +663,7 @@ var charactersSpriteMapLocation = {
     'char_cat':  [0,600,80,81,1,1]
 };
 
+// TODO: implement the moving charm timeout, or put a trigger on the page to turn it on/off
 /**
  * Array of Charms to collect, with a timeout value of how long they will be shown in screen before being moved
  * to another area of the play area
@@ -681,6 +689,10 @@ var currentCharm;
  *  **********************************************************************
  */
 
+
+/**
+ * Creates enemies and charms every time the game is restarted
+ */
 function createEnemiesAndCharms() {
     allEnemies = [];
     charms = [];
@@ -694,12 +706,18 @@ function createEnemiesAndCharms() {
 
 }
 
+/**
+ * Creates the player and the princess only once
+ */
 function createEntities(){
     player = new Player(charactersSpriteMapLocation['char_boy']);
     princess = new Princess();
     createEnemiesAndCharms();
 }
 
+/**
+ * Add key event listeners to player and to avatar selectors
+ */
 function addEventListeners(){
     // add keydown event listener. Add key press to array of keys pressed at the moment
     document.addEventListener('keydown', function(e) {
