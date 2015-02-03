@@ -332,7 +332,6 @@ var Player = function(spriteMap) {
 };
 inherits(Player, Sprite);
 
-
 /**
  * Resets player parameters to its original values.
  */
@@ -388,7 +387,6 @@ Player.prototype.lostLife = function(){
     }
 };
 
-
 /**
  * Appends img tag with the URL of the charm we just grabbed to the chams HTML div.
  * Note: we are not using jQuery that would make this step much simpler looking.
@@ -405,12 +403,10 @@ Player.prototype._appendCharmImage = function(charmURL){
     charmHTML.appendChild(imgNode);
 };
 
-
 /**
  * Called by the loop engine to check for collisions with charms. If the charm is a diving mask the player will be able to swim
  * in the water, if the charm is the heart the player will be able to rescue the princess (no heart no princess)
  */
-
 Player.prototype.grabCharm = function(){
     var newCharm = charms.pop();
     this.myCharms.push(newCharm);
@@ -683,12 +679,10 @@ var arrayOfCharms = ['images/Gem Green.png', 60,
  */
 var currentCharm;
 
-
 /** **********************************************************************
  *          Creates the entities after the resources are ready.
  *  **********************************************************************
  */
-
 
 /**
  * Creates enemies and charms every time the game is restarted
@@ -703,7 +697,6 @@ function createEnemiesAndCharms() {
 
     createEnemies(NUMBER_OF_ENEMIES);
     createCharms();
-
 }
 
 /**
