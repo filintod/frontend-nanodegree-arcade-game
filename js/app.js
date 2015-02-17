@@ -19,8 +19,8 @@ function drawTextWhiteBlack(txt, x, y){
  */
 function showMessageAfterLostWin(message){
     fgCtx.font = "80pt 'Press Start 2P'";
-    fgCtx.strokeStyle = "black";
-    fgCtx.fillStyle = "white";
+    fgCtx.strokeStyle = 'black';
+    fgCtx.fillStyle = 'white';
     var words = message.split(' ');
     var xLoc = (CANVAS_WIDTH - fgCtx.measureText(words[1]).width) >> 1;
     drawTextWhiteBlack(words[0], xLoc, (CANVAS_HEIGHT >> 1) - 100);
@@ -92,7 +92,7 @@ var Sprite = function(x, y, sprite, spriteMapLocation) {
     this.alpha = img.alpha;
 
     /**
-     * The location of the sprite in the spriteMap image 
+     * The location of the sprite in the spriteMap image
      */
     if (spriteMapLocation == undefined){
         this.spriteMapLocation = [0, 0, this.image.width, this.image.height, 1, 1];
@@ -189,7 +189,7 @@ Sprite.prototype.update = function(dt){
  * @returns {boolean}
  */
 Sprite.prototype.isVisible = function() {
-    return ((this.x + this.width) > 0 &&  this.x < CANVAS_WIDTH)
+    return ((this.x + this.width) > 0 &&  this.x < CANVAS_WIDTH);
 };
 
 /**
@@ -198,7 +198,7 @@ Sprite.prototype.isVisible = function() {
  */
 Sprite.prototype.render = function(ctx) {
     if (this.isVisible()) {
-        ctx.drawImage(this.image, this.spriteMapLocation[0], this.spriteMapLocation[1], this.width, this.height, 
+        ctx.drawImage(this.image, this.spriteMapLocation[0], this.spriteMapLocation[1], this.width, this.height,
                                   this.x, this.y, this.width, this.height);
     }
 };
@@ -487,7 +487,7 @@ Player.prototype.moveUp = function(speed) {
  * @param speed {Number}
  */
 Player.prototype.moveDown = function(speed) {
-    return this._moveIfNoObstacle('y', this.yStep, speed)
+    return this._moveIfNoObstacle('y', this.yStep, speed);
 };
 
 /**
@@ -495,7 +495,7 @@ Player.prototype.moveDown = function(speed) {
  * @param speed {Number}
  */
 Player.prototype.moveRight = function(speed) {
-    return this._moveIfNoObstacle('x', this.xStep, speed)
+    return this._moveIfNoObstacle('x', this.xStep, speed);
 };
 
 /**
@@ -503,7 +503,7 @@ Player.prototype.moveRight = function(speed) {
  * @param speed {Number}
  */
 Player.prototype.moveLeft = function(speed) {
-    return this._moveIfNoObstacle('x', - this.xStep, speed)
+    return this._moveIfNoObstacle('x', - this.xStep, speed);
 };
 
 
