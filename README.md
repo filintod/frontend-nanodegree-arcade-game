@@ -1,5 +1,7 @@
 #Frontend Nanodegree - Arcade Game
 
+**<font color='red'>Please Use a local web server to run the application as shown in the Canvas tutorial or you will get a CORS-related error.</font>**
+
 This is a forked of the Udacity Arcade Game in pursuing of the Front End Nanodegree.
 
 I have made some modifications/improvements to original js files:
