@@ -438,7 +438,7 @@ Player.prototype.isAnyOfTheseKeysActionable = function(keys){
 /**
  * Checks weather the Player is entering and obstacle area (bottom and side walls and the water on top)
  * @param {boolean} [checkWaterLimit=false] - flag to indicate we want to check water limit like moving up
- * @returns {boolean}
+ * @returns {boolean|'water'}
  */
 Player.prototype.isEnteringObstacle = function(checkWaterLimit){
     // default value
@@ -446,28 +446,48 @@ Player.prototype.isEnteringObstacle = function(checkWaterLimit){
         checkWaterLimit = false;
 
     if (checkWaterLimit && this.y + this.height < WATER_Y_LIMIT){
-        return (!this.canSwim);
+        return 'water';
 
     } else {
-        return (this.x < 0 ||
+        return (this.x < 0 || this.y < 0 ||
                 this.x + this.width > CANVAS_WIDTH ||
                 this.y + this.height > CANVAS_HEIGHT - EMPTY_AREA_BOT
                );
     }
 };
 
-/** DRY function for moving avatar
+/** DRY function for moving avatar. It will also kill avatar if entering water and cannot swim
  *
  * @param k {'x'|'y'} - coordinate to use
  * @param v - step value
  * @param speed - speed to move
+ * @param checkWaterLimit - flag to indicate that we want to check for entering water and see if we can swim
  * @private
  */
-Player.prototype._moveIfNoObstacle = function(k, v, speed){
+Player.prototype._moveIfNoObstacle = function(k, v, speed, checkWaterLimit){
+    // default value
+    if (checkWaterLimit === undefined)
+        checkWaterLimit = false;
+
     v *= speed;
     this[k] += v;
-    if (this.isEnteringObstacle()) {
-        this[k] -= v << 1;
+    var enteringObstacle = this.isEnteringObstacle(checkWaterLimit);
+    var lostLife = false;
+
+    if (checkWaterLimit){
+        if (enteringObstacle === 'water' && !this.canSwim) {
+            lostLife = true;
+        } else {
+            enteringObstacle = this.isEnteringObstacle();
+        }
+    }
+
+    if (lostLife){
+        this.lostLife();
+    } else {
+        if (enteringObstacle) {
+            this[k] -= v << 1;
+        }
     }
 };
 
@@ -476,10 +496,7 @@ Player.prototype._moveIfNoObstacle = function(k, v, speed){
  * @param speed {Number}
  */
 Player.prototype.moveUp = function(speed) {
-    this.y -= this.yStep * speed;
-    if (this.isEnteringObstacle(true)) {
-        this.lostLife();
-    }
+    return this._moveIfNoObstacle('y', -this.yStep, speed, true);
 };
 
 /**
